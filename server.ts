@@ -21,6 +21,10 @@ const app = new Koa();
 app.use(koaBodyParser());
 const router = new KoaRouter();
 
+router.get('/', async (ctx) => {
+    ctx.body = 'Hello World!';
+});
+
 router.post("/token/:identity", async (ctx) => {
     const identity = ctx.params.identity;
     const token = new AccessToken(
