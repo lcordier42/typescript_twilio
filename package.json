@@ -1,0 +1,40 @@
+{
+    "name": "typescript_twilio",
+    "version": "1.0.0",
+    "description": "",
+    "main": "server.js",
+    "scripts": {
+        "server": "node server.js",
+        "client": "node start-client.js",
+        "start": "concurrently \"npm run server\" \"npm run client\""
+},
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/lcordier42/typescript_twilio.git"
+    },
+    "author": "lcordier42",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/lcordier42/typescript_twilio/issues"
+    },
+    "homepage": "https://github.com/lcordier42/typescript_twilio#readme",
+    "react-scripts": "^1.1.0",
+    "dependencies": {
+        "@types/koa-bodyparser": "^3.0.26",
+        "koa": "2.4.1",
+        "koa-body": "^2.5.0",
+        "koa-bodyparser": "^4.2.0",
+        "koa-router": "7.3.0",
+        "twilio": "3.11.0"
+    },
+    "devDependencies": {
+        "@types/dotenv": "4.0.2",
+        "@types/koa": "2.0.43",
+        "@types/koa-router": "7.0.27",
+        "@types/node": "9.3.0",
+        "@types/twilio": "0.0.9",
+        "concurrently": "^3.5.1",
+        "react-scripts": "^1.1.0",
+        "typescript": "2.6.2"
+    }
+}
