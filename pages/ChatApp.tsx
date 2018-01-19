@@ -4,29 +4,29 @@ import Chat from "twilio-chat";
 import { NameBox } from "./NameBox";
 
 export class ChatApp extends React.Component<any, any> {
-    channelName: string;
     chatClient: any;
     channel: any;
+    name: any;
+    loggedIn: boolean;
     constructor(props: any) {
         super(props);
         const name = "";
-        const loggedIn = name !== "";
         this.state = {
             name,
-            loggedIn,
             token: "",
             channel: "",
+            channels: [],
             chatReady: false,
+            inviteUser: "",
             messages: [],
             newMessage: "",
+            newChannel: "",
         };
-        this.channelName = "general";
+        this.name = "";
     }
 
-    componentWillMount() {
-        if (this.state.loggedIn) {
-            this.getToken();
-        }
+    componentDidMount() {
+        this.getToken();
     }
 
     onNameChanged = (event: any) => {
@@ -36,7 +36,9 @@ export class ChatApp extends React.Component<any, any> {
     logIn = (event: any) => {
         event.preventDefault();
         if (this.state.name !== "") {
-            this.setState({ loggedIn: true }, this.getToken);
+            sessionStorage.setItem("name", this.state.name);
+            this.loggedIn = true;
+            this.getToken();
         }
     };
 
@@ -44,63 +46,70 @@ export class ChatApp extends React.Component<any, any> {
         event.preventDefault();
         this.setState({
             name: "",
-            status: "",
-            loggedIn: false,
-            channel: "",
             token: "",
+            channel: "",
+            channels: [],
+            inviteUser: "",
             chatReady: false,
             messages: [],
             newMessage: "",
+            newChannel: "",
         });
-        this.channelName = "general";
+        sessionStorage.removeItem("name");
+        this.loggedIn = false;
         this.chatClient.shutdown();
         this.channel = null;
     };
 
     getToken = () => {
-        console.log("test");
-        fetch(`/token/${this.state.name}`, {
-            method: "POST",
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                console.log(data);
-                this.setState({ token: data.token }, this.initChat);
-            });
+        this.loggedIn = false;
+        this.name = sessionStorage.getItem("name");
+        if (this.name !== "" && this.name !== null) {
+            this.loggedIn = true;
+            fetch(`/token/${this.name}`, {
+                method: "POST",
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    this.setState({ token: data.token }, this.initChat);
+                });
+        } else {
+            this.loggedIn = false;
+        }
     };
 
     initChat = () => {
         Chat.create(this.state.token)
             .then((client) => {
-                if (client) {
-                    return (this.chatClient = client);
-                }
+                return (this.chatClient = client);
             })
             .then((client) => {
-                console.log(client);
-                client
-                    .getChannelByUniqueName(this.channelName)
-                    .then((channel) => {
-                        if (channel) {
-                            return (this.channel = channel);
-                        }
-                    })
-                    .then((channel) => {
-                        this.channel = channel;
-                        return this.channel.join();
-                    })
-                    .catch((error: any) => {
-                        if (error.code === 50404) {
-                            console.log("Oh bah mince");
-                        }
-                    })
-                    .then(() => {
-                        this.channel.getMessages().then(this.messagesLoaded);
-                        this.channel.on("messageAdded", this.messageAdded);
-                    });
+                client.on("channelAdded", this.channelAdded);
             });
-        console.log(this.chatClient);
-        console.log(this.channel);
+    };
+
+    channelAdded = (channel: any) => {
+        this.setState((prevState: any, props: any) => ({
+            channels: [...prevState.channels, channel.uniqueName],
+        }));
+    };
+
+    channelList = (paginator: any) => {
+        var i;
+        var channel = [];
+
+        for (i = 0; i < paginator.items.length; i++) {
+            channel[i] = paginator.items[i].uniqueName;
+        }
+        this.setState({ channels: channel });
+    };
+
+    onChannelChanged = (event: any) => {
+        this.setState({ newChannel: event.target.value });
+    };
+
+    onInviteChanged = (event: any) => {
+        this.setState({ inviteUser: event.target.value });
     };
 
     messagesLoaded = (messagePage: any) => {
@@ -130,9 +139,56 @@ export class ChatApp extends React.Component<any, any> {
         }
     };
 
+    createChannel = (event: any) => {
+        event.preventDefault();
+        console.log(this.state.newChannel);
+        this.chatClient
+            .createChannel({ uniqueName: this.state.newChannel })
+            .then((channel: any) => {
+                channel.add(this.name);
+            });
+        this.setState({ newChannel: "" });
+    };
+
+    deleteChannel = (event: any) => {
+        event.preventDefault();
+        this.chatClient
+            .getChannelByUniqueName(this.state.newChannel)
+            .then((channel: any) => {
+                channel.delete();
+            });
+        this.setState({ newChannel: "" });
+    };
+
+    joinChannel = (event: any) => {
+        if (this.channel) {
+            this.channel.removeListener("messageAdded", this.messageAdded);
+        }
+        event.preventDefault();
+        this.chatClient
+            .getChannelByUniqueName(this.state.newChannel)
+            .then((channel: any) => {
+                this.channel = channel;
+            })
+            .then(() => {
+                this.channel.getMessages().then(this.messagesLoaded);
+                this.channel.on("messageAdded", this.messageAdded);
+            });
+        this.setState({ newChannel: "" });
+    };
+
+    addMember = (event: any) => {
+        event.preventDefault();
+        if (this.channel) {
+            this.channel.add(this.state.inviteUser);
+        } else {
+            console.log("You're not in a channel");
+        }
+        this.setState({ inviteUser: "" });
+    };
+
     render() {
         var loginOrChat;
-
         const messages = this.state.messages.map((message: any) => {
             return (
                 <li key={message.sid} ref={this.newMessageAdded}>
@@ -140,11 +196,22 @@ export class ChatApp extends React.Component<any, any> {
                 </li>
             );
         });
-        if (this.state.loggedIn) {
+        const channels = this.state.channels.map((channel: any) => {
+            return (
+                <button
+                    type="submit"
+                    onClick={this.onChannelChanged}
+                    value={channel}
+                >
+                    {channel}
+                </button>
+            );
+        });
+        if (this.loggedIn && this.channel) {
             loginOrChat = (
                 <div>
                     <h3>Messages</h3>
-                    <p>Logged in as {this.state.name}</p>
+                    <p>Logged in as {this.name}</p>
                     <ul className="messages">{messages}</ul>
                     <form onSubmit={this.sendMessage}>
                         <label htmlFor="message">Message: </label>
@@ -158,6 +225,49 @@ export class ChatApp extends React.Component<any, any> {
                         <button>Send</button>
                     </form>
                     <br />
+                    <label>Channels: </label>
+                    <form onSubmit={this.joinChannel}>{channels}</form>
+                    <br />
+                    <form onSubmit={this.logOut}>
+                        <button>Log out</button>
+                    </form>
+                    <form onSubmit={this.createChannel}>
+                        <input
+                            type="text"
+                            name="newchannel"
+                            id="newchannel"
+                            onChange={this.onChannelChanged}
+                            value={this.state.newChannel}
+                        />
+                        <button>create</button>
+                    </form>
+                    <form onSubmit={this.addMember}>
+                        <input
+                            type="text"
+                            name="inviteuser"
+                            id="inviteuser"
+                            onChange={this.onInviteChanged}
+                            value={this.state.inviteUser}
+                        />
+                        <button>Add user</button>
+                    </form>
+                    <form onSubmit={this.deleteChannel}>
+                        <input
+                            type="text"
+                            name="delchannel"
+                            id="delchannel"
+                            onChange={this.onChannelChanged}
+                            value={this.state.delChannel}
+                        />
+                        <button>delete</button>
+                    </form>
+                </div>
+            );
+        } else if (this.loggedIn) {
+            loginOrChat = (
+                <div>
+                    <label>Channels: </label>
+                    <form onSubmit={this.joinChannel}>{channels}</form>
                     <br />
                     <form onSubmit={this.logOut}>
                         <button>Log out</button>
