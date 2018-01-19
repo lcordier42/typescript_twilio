@@ -3,6 +3,8 @@ import * as React from "react";
 type NameBoxProps = {
     name: string;
     onNameChanged: any;
+    status: string;
+    onStatusChanged: any;
     logIn: any;
 };
 
@@ -11,6 +13,8 @@ export class NameBox extends React.Component<NameBoxProps> {
         const name = this.props.name;
         const onNameChanged = this.props.onNameChanged;
         const logIn = this.props.logIn;
+        const onStatusChanged = this.props.onStatusChanged.bind(this);
+        const status = this.props.status;
         return (
             <div>
                 <form onSubmit={logIn}>
@@ -23,6 +27,19 @@ export class NameBox extends React.Component<NameBoxProps> {
                         value={name}
                     />
                     <br />
+                    <label htmlFor="status">Status: </label>
+                    <select
+                        name="status"
+                        id="status"
+                        onChange={onStatusChanged}
+                        value={status}
+                    >
+                        <option value="" />
+                        <option value="guest">guest</option>
+                        <option value="business">business</option>
+                        <option value="candidat">candidat</option>
+                        <option value="coach">coach</option>
+                    </select>
                     <button type="submit">Log in</button>
                 </form>
             </div>

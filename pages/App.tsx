@@ -7,7 +7,7 @@ export class App extends React.Component {
         return (
             <div>
                 <header>
-                    <h1>Twilio Programmable Chat!</h1>
+                    <h1>Test Nexten Chat</h1>
                 </header>
                 <ChatApp />
             </div>

@@ -12,11 +12,15 @@ const config = {
         apiSecret: process.env.TWILIO_API_SECRET,
         chatServiceSid: process.env.TWILIO_CHAT_SERVICE_SID,
         authToken: "025c64434e4149aaf6dc15c40e7e662a",
+        admin: "RL3d68dbcbf8ec4c018d36d578330309c0",
+        user: "RL0dad3491bb6349a5a53458a0fc97843c",
     },
     port: 3000,
 };
 const AccessToken = Twilio.jwt.AccessToken;
 const ChatGrant = AccessToken.ChatGrant;
+const client = new Twilio.Twilio(config.twilio.accountSid, config.twilio.authToken);
+const service = client.chat.services(config.twilio.chatServiceSid);
 
 const app = appBuilder({
     conf: { poweredByHeader: false },
@@ -31,8 +35,14 @@ app.prepare().then(() => {
         await handle(ctx.req, ctx.res);
     });
 
-    router.post("/token/:identity", async (ctx: any) => {
+    router.post("/token/:identity/:status", async (ctx: any) => {
         const identity = ctx.params.identity;
+        var permission = config.twilio.user;
+        if (
+            ctx.params.status === "business" ||
+            ctx.params.status === "coach"
+        )
+            permission = config.twilio.admin;
         const token = new AccessToken(
             config.twilio.accountSid,
             config.twilio.apiKey,
@@ -47,6 +57,29 @@ app.prepare().then(() => {
         ctx.body = JSON.stringify({
             token: token.toJwt(),
             identity: identity,
+        });
+        service
+        .users(identity)
+        .update({
+            roleSid: permission,
+        })
+        .then(function(response: any) {
+            console.log(response);
+        })
+        .catch(function(error: any) {
+            if (error.code === 20404) {
+                service.users
+                    .create({
+                        identity: identity,
+                        roleSid: permission,
+                    })
+                    .then(function(response: any) {
+                        console.log(response);
+                    })
+                    .catch(function(error: any) {
+                        console.log(error);
+                    });
+            } else console.log(error);
         });
     });
 

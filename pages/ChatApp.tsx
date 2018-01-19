@@ -5,9 +5,11 @@ import { NameBox } from "./NameBox";
 
 export class ChatApp extends React.Component<any, any> {
     chatClient: any;
+    loggedChannel: any;
     channel: any;
     name: any;
     loggedIn: boolean;
+    status: any;
     constructor(props: any) {
         super(props);
         const name = "";
@@ -33,10 +35,15 @@ export class ChatApp extends React.Component<any, any> {
         this.setState({ name: event.target.value });
     };
 
+    onStatusChanged = (event: any) => {
+        this.setState({ status: event.target.value });
+    };
+
     logIn = (event: any) => {
         event.preventDefault();
         if (this.state.name !== "") {
             sessionStorage.setItem("name", this.state.name);
+            sessionStorage.setItem("status", this.state.status);
             this.loggedIn = true;
             this.getToken();
         }
@@ -56,6 +63,7 @@ export class ChatApp extends React.Component<any, any> {
             newChannel: "",
         });
         sessionStorage.removeItem("name");
+        sessionStorage.removeItem("status");
         this.loggedIn = false;
         this.chatClient.shutdown();
         this.channel = null;
@@ -64,9 +72,10 @@ export class ChatApp extends React.Component<any, any> {
     getToken = () => {
         this.loggedIn = false;
         this.name = sessionStorage.getItem("name");
+        this.status = sessionStorage.getItem("status");
         if (this.name !== "" && this.name !== null) {
             this.loggedIn = true;
-            fetch(`/token/${this.name}`, {
+            fetch(`/token/${this.name}/${this.status}`, {
                 method: "POST",
             })
                 .then((response) => response.json())
@@ -146,6 +155,7 @@ export class ChatApp extends React.Component<any, any> {
             .createChannel({ uniqueName: this.state.newChannel })
             .then((channel: any) => {
                 channel.add(this.name);
+                channel.add("coach");
             });
         this.setState({ newChannel: "" });
     };
@@ -189,6 +199,7 @@ export class ChatApp extends React.Component<any, any> {
 
     render() {
         var loginOrChat;
+        var adminOrNot;
         const messages = this.state.messages.map((message: any) => {
             return (
                 <li key={message.sid} ref={this.newMessageAdded}>
@@ -225,12 +236,46 @@ export class ChatApp extends React.Component<any, any> {
                         <button>Send</button>
                     </form>
                     <br />
-                    <label>Channels: </label>
+                    <div>
+                        <label>Join a channel: </label>
+                        <form onSubmit={this.joinChannel}>{channels}</form>
+                        <br />
+                        <form onSubmit={this.logOut}>
+                            <button>Log out</button>
+                        </form>
+                    </div>
+                </div>
+            );
+        } else if (this.loggedIn) {
+            loginOrChat = (
+                <div>
+                    <label>Join a channel: </label>
                     <form onSubmit={this.joinChannel}>{channels}</form>
                     <br />
                     <form onSubmit={this.logOut}>
                         <button>Log out</button>
                     </form>
+                </div>
+            );
+        } else {
+            loginOrChat = (
+                <div>
+                    <NameBox
+                        name={this.state.name}
+                        onNameChanged={this.onNameChanged}
+                        status={this.state.status}
+                        onStatusChanged={this.onStatusChanged}
+                        logIn={this.logIn}
+                    />
+                </div>
+            );
+        }
+        if (
+            this.loggedIn &&
+            (this.status === "business" || this.status === "coach")
+        ) {
+            adminOrNot = (
+                <div>
                     <form onSubmit={this.createChannel}>
                         <input
                             type="text"
@@ -263,29 +308,15 @@ export class ChatApp extends React.Component<any, any> {
                     </form>
                 </div>
             );
-        } else if (this.loggedIn) {
-            loginOrChat = (
-                <div>
-                    <label>Channels: </label>
-                    <form onSubmit={this.joinChannel}>{channels}</form>
-                    <br />
-                    <form onSubmit={this.logOut}>
-                        <button>Log out</button>
-                    </form>
-                </div>
-            );
         } else {
-            loginOrChat = (
-                <div>
-                    <NameBox
-                        name={this.state.name}
-                        onNameChanged={this.onNameChanged}
-                        logIn={this.logIn}
-                    />
-                </div>
-            );
+            adminOrNot = null;
         }
-        return <div>{loginOrChat}</div>;
+        return (
+            <div>
+                <div>{loginOrChat}</div>
+                <div>{adminOrNot}</div>
+            </div>
+        );
     }
 }
 
