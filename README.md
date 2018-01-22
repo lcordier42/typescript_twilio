@@ -1,5 +1,6 @@
+```
 npm i
 tsc
+npm run build
 node server.js
-curl -X POST "http://localhost:3000/token/name"
-
+```
