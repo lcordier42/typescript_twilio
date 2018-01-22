@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -eux
+
+tmux new-session -d
+
+tmux split-window -t :0.0 -v
+tmux split-window -t :0.0 -v
+
+tmux select-layout tiled
+
+tmux send-keys -t :0.0 'node_modules/.bin/tsc --pretty --watch' C-m
+tmux send-keys -t :0.1 'node_modules/.bin/next dev --port 1234' C-m
+
+tmux attach-session

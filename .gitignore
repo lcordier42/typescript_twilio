@@ -1,6 +1,5 @@
 *.js
 .env
 .next
-node_modules
 build
-package-lock.json
+node_modules
