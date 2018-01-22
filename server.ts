@@ -1,10 +1,11 @@
+import * as dotenv from "dotenv";
 import * as Koa from "koa";
 import * as koaBodyParser from "koa-bodyparser";
 import * as KoaRouter from "koa-router";
 import * as appBuilder from "next";
 import Twilio = require("twilio");
-require("dotenv").load();
 
+dotenv.config();
 const config = {
     port: 3000,
     twilio: {
@@ -77,8 +78,8 @@ app.prepare().then(() => {
                         .then((response: any) => {
                             console.log(response);
                         })
-                        .catch((error: any) => {
-                            console.log(error);
+                        .catch((err: any) => {
+                            console.log(err);
                         });
                 } else {
                     console.log(error);
