@@ -5,11 +5,10 @@ import { NameBox } from "./NameBox";
 
 export class ChatApp extends React.Component<any, any> {
     chatClient: any;
-    loggedChannel: any;
+    loggedChannel: string;
     channel: any;
-    name: any;
+    name: string | null;
     loggedIn: boolean;
-    status: any;
     constructor(props: any) {
         super(props);
         const name = "";
@@ -35,15 +34,10 @@ export class ChatApp extends React.Component<any, any> {
         this.setState({ name: event.target.value });
     };
 
-    onStatusChanged = (event: any) => {
-        this.setState({ status: event.target.value });
-    };
-
     logIn = (event: any) => {
         event.preventDefault();
         if (this.state.name !== "") {
             sessionStorage.setItem("name", this.state.name);
-            sessionStorage.setItem("status", this.state.status);
             this.loggedIn = true;
             this.getToken();
         }
@@ -63,7 +57,6 @@ export class ChatApp extends React.Component<any, any> {
             newChannel: "",
         });
         sessionStorage.removeItem("name");
-        sessionStorage.removeItem("status");
         this.loggedIn = false;
         this.chatClient.shutdown();
         this.channel = null;
@@ -72,10 +65,9 @@ export class ChatApp extends React.Component<any, any> {
     getToken = () => {
         this.loggedIn = false;
         this.name = sessionStorage.getItem("name");
-        this.status = sessionStorage.getItem("status");
         if (this.name !== "" && this.name !== null) {
             this.loggedIn = true;
-            fetch(`/token/${this.name}/${this.status}`, {
+            fetch(`/token/${this.name}`, {
                 method: "POST",
             })
                 .then((response) => response.json())
@@ -89,10 +81,10 @@ export class ChatApp extends React.Component<any, any> {
 
     initChat = () => {
         Chat.create(this.state.token)
-            .then((client) => {
+            .then((client: any) => {
                 return (this.chatClient = client);
             })
-            .then((client) => {
+            .then((client: any) => {
                 client.on("channelAdded", this.channelAdded);
             });
     };
@@ -125,7 +117,7 @@ export class ChatApp extends React.Component<any, any> {
         this.setState({ messages: messagePage.items });
     };
 
-    messageAdded = (message: any) => {
+    messageAdded = (message: string) => {
         this.setState((prevState: any, props: any) => ({
             messages: [...prevState.messages, message],
         }));
@@ -198,6 +190,21 @@ export class ChatApp extends React.Component<any, any> {
     };
 
     render() {
+        const css = `
+        .messages {
+            list-style-type: none;
+            height: 350px;
+            overflow-y: scroll;
+            padding: 0;
+            margin: 0;
+        }
+
+        .messages li {
+            margin-bottom: 0.5em;
+            padding: 1em 0.5em;
+            background-color: #e8e8e8;
+        }
+        `;
         var loginOrChat;
         var adminOrNot;
         const messages = this.state.messages.map((message: any) => {
@@ -263,8 +270,6 @@ export class ChatApp extends React.Component<any, any> {
                     <NameBox
                         name={this.state.name}
                         onNameChanged={this.onNameChanged}
-                        status={this.state.status}
-                        onStatusChanged={this.onStatusChanged}
                         logIn={this.logIn}
                     />
                 </div>
@@ -272,7 +277,7 @@ export class ChatApp extends React.Component<any, any> {
         }
         if (
             this.loggedIn &&
-            (this.status === "business" || this.status === "coach")
+            (this.name === "business" || this.name === "coach")
         ) {
             adminOrNot = (
                 <div>
@@ -313,6 +318,7 @@ export class ChatApp extends React.Component<any, any> {
         }
         return (
             <div>
+                <style>{css}</style>
                 <div>{loginOrChat}</div>
                 <div>{adminOrNot}</div>
             </div>

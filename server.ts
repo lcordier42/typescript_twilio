@@ -35,12 +35,12 @@ app.prepare().then(() => {
         await handle(ctx.req, ctx.res);
     });
 
-    router.post("/token/:identity/:status", async (ctx: any) => {
+    router.post("/token/:identity", async (ctx: any) => {
         const identity = ctx.params.identity;
         var permission = config.twilio.user;
         if (
-            ctx.params.status === "business" ||
-            ctx.params.status === "coach"
+            identity === "business" ||
+            identity === "coach"
         )
             permission = config.twilio.admin;
         const token = new AccessToken(
