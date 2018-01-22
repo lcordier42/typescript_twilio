@@ -20,7 +20,8 @@ export class ChatApp extends React.Component<any, any> {
             inviteUser: "",
             messages: [],
             newMessage: "",
-            members: [],
+            onlineMembers: [],
+            offlineMembers: [],
             newChannel: "",
         };
         this.name = "";
@@ -54,6 +55,8 @@ export class ChatApp extends React.Component<any, any> {
             chatReady: false,
             messages: [],
             newMessage: "",
+            onlineMembers: [],
+            offlineMembers: [],
             newChannel: "",
         });
         sessionStorage.removeItem("name");
@@ -103,6 +106,9 @@ export class ChatApp extends React.Component<any, any> {
                                 .getMessages()
                                 .then(this.messagesLoaded);
                             this.channel.on("messageAdded", this.messageAdded);
+                            this.channel
+                                .getMembers()
+                                .then(this.memberAdded.bind(this));
                         });
                 }
             });
@@ -182,10 +188,10 @@ export class ChatApp extends React.Component<any, any> {
     };
 
     joinChannel = (event: any) => {
+        event.preventDefault();
         if (this.channel) {
             this.channel.removeListener("messageAdded", this.messageAdded);
         }
-        event.preventDefault();
         this.chatClient
             .getChannelByUniqueName(this.state.newChannel)
             .then((channel: any) => {
@@ -195,8 +201,33 @@ export class ChatApp extends React.Component<any, any> {
             .then(() => {
                 this.channel.getMessages().then(this.messagesLoaded);
                 this.channel.on("messageAdded", this.messageAdded);
+                this.channel.getMembers().then(this.memberAdded.bind(this));
             });
         this.setState({ newChannel: "" });
+    };
+
+    memberAdded = (members: any) => {
+        this.setState({ onlineMembers: [] });
+        this.setState({ offlineMembers: [] });
+        members.map((member: any) => {
+            member.getUser().then((user: any) => {
+                if (user.online === true) {
+                    this.setState((prevState: any, props: any) => ({
+                        onlineMembers: [
+                            ...prevState.onlineMembers,
+                            member.identity,
+                        ],
+                    }));
+                } else {
+                    this.setState((prevState: any, props: any) => ({
+                        offlineMembers: [
+                            ...prevState.offlineMembers,
+                            member.identity,
+                        ],
+                    }));
+                }
+            });
+        });
     };
 
     addMember = (event: any) => {
@@ -262,6 +293,12 @@ export class ChatApp extends React.Component<any, any> {
                 </li>
             );
         });
+        const onlineMembers = this.state.onlineMembers.map((member: any) => {
+            return <li>{member}</li>;
+        });
+        const offlineMembers = this.state.offlineMembers.map((member: any) => {
+            return <li>{member}</li>;
+        });
         if (this.loggedIn && this.channel) {
             loginOrChat = (
                 <div className="chat">
@@ -287,6 +324,12 @@ export class ChatApp extends React.Component<any, any> {
                         <form onSubmit={this.logOut}>
                             <button>Log out</button>
                         </form>
+                    </div>
+                    <div>
+                        <b>Online</b>
+                        {onlineMembers}
+                        <b>Offline</b>
+                        {offlineMembers}
                     </div>
                 </div>
             );
