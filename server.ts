@@ -50,6 +50,7 @@ app.prepare().then(() => {
         );
         const chatGrant = new ChatGrant({
             serviceSid: config.twilio.chatServiceSid,
+            ttl: 10,
         });
         token.identity = identity;
         token.addGrant(chatGrant);

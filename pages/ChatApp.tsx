@@ -5,7 +5,6 @@ import { NameBox } from "./NameBox";
 
 export class ChatApp extends React.Component<any, any> {
     chatClient: any;
-    loggedChannel: string;
     channel: any;
     name: string | null;
     loggedIn: boolean;
@@ -21,6 +20,7 @@ export class ChatApp extends React.Component<any, any> {
             inviteUser: "",
             messages: [],
             newMessage: "",
+            members: [],
             newChannel: "",
         };
         this.name = "";
@@ -57,6 +57,7 @@ export class ChatApp extends React.Component<any, any> {
             newChannel: "",
         });
         sessionStorage.removeItem("name");
+        sessionStorage.removeItem("loggedChannel");
         this.loggedIn = false;
         this.chatClient.shutdown();
         this.channel = null;
@@ -86,6 +87,24 @@ export class ChatApp extends React.Component<any, any> {
             })
             .then((client: any) => {
                 client.on("channelAdded", this.channelAdded);
+                return client;
+            })
+            .then((client: any) => {
+                const channelName =
+                    sessionStorage.getItem("loggedChannel") || "";
+                if (channelName !== "") {
+                    client
+                        .getChannelByUniqueName(channelName)
+                        .then((channel: any) => {
+                            this.channel = channel;
+                        })
+                        .then(() => {
+                            this.channel
+                                .getMessages()
+                                .then(this.messagesLoaded);
+                            this.channel.on("messageAdded", this.messageAdded);
+                        });
+                }
             });
     };
 
@@ -171,6 +190,7 @@ export class ChatApp extends React.Component<any, any> {
             .getChannelByUniqueName(this.state.newChannel)
             .then((channel: any) => {
                 this.channel = channel;
+                sessionStorage.setItem("loggedChannel", channel.uniqueName);
             })
             .then(() => {
                 this.channel.getMessages().then(this.messagesLoaded);
@@ -191,6 +211,21 @@ export class ChatApp extends React.Component<any, any> {
 
     render() {
         const css = `
+        .chat {
+            height: 350px;
+            width: 600px;
+        }
+        .channels {
+            list-style-type: none;
+            position: relative;
+            top: -400px;
+            left: 650px;
+        }
+        .admin {
+            position: relative;
+            top: 130px;
+            width: 400px;
+        }
         .messages {
             list-style-type: none;
             height: 350px;
@@ -216,18 +251,20 @@ export class ChatApp extends React.Component<any, any> {
         });
         const channels = this.state.channels.map((channel: any) => {
             return (
-                <button
-                    type="submit"
-                    onClick={this.onChannelChanged}
-                    value={channel}
-                >
-                    {channel}
-                </button>
+                <li>
+                    <button
+                        type="submit"
+                        onClick={this.onChannelChanged}
+                        value={channel}
+                    >
+                        {channel}
+                    </button>
+                </li>
             );
         });
         if (this.loggedIn && this.channel) {
             loginOrChat = (
-                <div>
+                <div className="chat">
                     <h3>Messages</h3>
                     <p>Logged in as {this.name}</p>
                     <ul className="messages">{messages}</ul>
@@ -243,7 +280,7 @@ export class ChatApp extends React.Component<any, any> {
                         <button>Send</button>
                     </form>
                     <br />
-                    <div>
+                    <div className="channels">
                         <label>Join a channel: </label>
                         <form onSubmit={this.joinChannel}>{channels}</form>
                         <br />
@@ -280,7 +317,7 @@ export class ChatApp extends React.Component<any, any> {
             (this.name === "business" || this.name === "coach")
         ) {
             adminOrNot = (
-                <div>
+                <div className="admin">
                     <form onSubmit={this.createChannel}>
                         <input
                             type="text"
@@ -289,7 +326,7 @@ export class ChatApp extends React.Component<any, any> {
                             onChange={this.onChannelChanged}
                             value={this.state.newChannel}
                         />
-                        <button>create</button>
+                        <button>Create channel</button>
                     </form>
                     <form onSubmit={this.addMember}>
                         <input
