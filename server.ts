@@ -5,6 +5,7 @@ import * as KoaRouter from "koa-router";
 import * as appBuilder from "next";
 import Twilio = require("twilio");
 
+// tslint:disable no-console
 dotenv.config();
 const config = {
     twilio: {
@@ -94,6 +95,5 @@ app.prepare().then(() => {
 
     koa.use(router.routes());
     const server = koa.listen(parseInt(process.env.PORT || "3000", 10));
-    // tslint:disable-next-line no-console
     console.log(JSON.stringify(server.address(), null, 4));
 });
