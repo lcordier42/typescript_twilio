@@ -40,10 +40,6 @@ export class ChatApp extends React.Component<
         this.getToken();
     }
 
-    public onNameChanged = (event: any) => {
-        this.setState({ name: event.target.value });
-    }
-
     public logIn = (event: any) => {
         event.preventDefault();
         if (this.state.name !== "") {
@@ -96,7 +92,11 @@ export class ChatApp extends React.Component<
                 return (this.chatClient = client);
             })
             .then((client: any) => {
-                client.on("channelAdded", this.channelAdded);
+                client.on("channelAdded", (channel: any) => {
+                    this.setState((prevState: any, props: any) => ({
+                        channels: [...prevState.channels, channel.uniqueName],
+                    }));
+                });
                 return client;
             })
             .then((client: any) => {
@@ -121,30 +121,6 @@ export class ChatApp extends React.Component<
             });
     }
 
-    public channelAdded = (channel: any) => {
-        this.setState((prevState: any, props: any) => ({
-            channels: [...prevState.channels, channel.uniqueName],
-        }));
-    }
-
-    public channelList = (paginator: any) => {
-        let i;
-        const channel = [];
-
-        for (i = 0; i < paginator.items.length; i++) {
-            channel[i] = paginator.items[i].uniqueName;
-        }
-        this.setState({ channels: channel });
-    }
-
-    public onChannelChanged = (event: any) => {
-        this.setState({ newChannel: event.target.value });
-    }
-
-    public onInviteChanged = (event: any) => {
-        this.setState({ inviteUser: event.target.value });
-    }
-
     public messagesLoaded = (messagePage: any) => {
         this.setState({ messages: messagePage.items });
     }
@@ -155,23 +131,6 @@ export class ChatApp extends React.Component<
         }));
     }
 
-    public onMessageChanged = (event: any) => {
-        this.setState({ newMessage: event.target.value });
-    }
-
-    public sendMessage = (event: any) => {
-        event.preventDefault();
-        const message = this.state.newMessage;
-        this.setState({ newMessage: "" });
-        this.channel.sendMessage(message);
-    }
-
-    public newMessageAdded = (li: any) => {
-        if (li) {
-            li.scrollIntoView();
-        }
-    }
-
     public createChannel = (event: any) => {
         event.preventDefault();
         this.chatClient
@@ -179,25 +138,6 @@ export class ChatApp extends React.Component<
             .then((channel: any) => {
                 channel.add(this.name);
                 channel.add("coach");
-            });
-        this.setState({ newChannel: "" });
-    }
-
-    public joinChannel = (event: any) => {
-        event.preventDefault();
-        if (this.channel) {
-            this.channel.removeListener("messageAdded", this.messageAdded);
-        }
-        this.chatClient
-            .getChannelByUniqueName(this.state.newChannel)
-            .then((channel: any) => {
-                this.channel = channel;
-                sessionStorage.setItem("loggedChannel", channel.uniqueName);
-            })
-            .then(() => {
-                this.channel.getMessages().then(this.messagesLoaded);
-                this.channel.on("messageAdded", this.messageAdded);
-                this.channel.getMembers().then(this.memberAdded.bind(this));
             });
         this.setState({ newChannel: "" });
     }
@@ -224,14 +164,6 @@ export class ChatApp extends React.Component<
                 }
             });
         });
-    }
-
-    public addMember = (event: any) => {
-        event.preventDefault();
-        if (this.channel) {
-            this.channel.add(this.state.inviteUser);
-        }
-        this.setState({ inviteUser: "" });
     }
 
     public render() {
@@ -274,15 +206,57 @@ export class ChatApp extends React.Component<
                         <div>
                             <div className="channels">
                                 <label>Join a channel: </label>
-                                <form onSubmit={this.joinChannel}>
+                                <form
+                                    onSubmit={(event: any) => {
+                                        event.preventDefault();
+                                        if (this.channel) {
+                                            this.channel.removeListener(
+                                                "messageAdded",
+                                                this.messageAdded,
+                                            );
+                                        }
+                                        this.chatClient
+                                            .getChannelByUniqueName(
+                                                this.state.newChannel,
+                                            )
+                                            .then((channel: any) => {
+                                                this.channel = channel;
+                                                sessionStorage.setItem(
+                                                    "loggedChannel",
+                                                    channel.uniqueName,
+                                                );
+                                            })
+                                            .then(() => {
+                                                this.channel
+                                                    .getMessages()
+                                                    .then(this.messagesLoaded);
+                                                this.channel.on(
+                                                    "messageAdded",
+                                                    this.messageAdded,
+                                                );
+                                                this.channel
+                                                    .getMembers()
+                                                    .then(
+                                                        this.memberAdded.bind(
+                                                            this,
+                                                        ),
+                                                    );
+                                            });
+                                        this.setState({ newChannel: "" });
+                                    }}
+                                >
                                     {this.state.channels.map(
                                         (channel: any, i: number) => (
                                             <li key={i}>
                                                 <button
                                                     type="submit"
-                                                    onClick={
-                                                        this.onChannelChanged
-                                                    }
+                                                    onClick={(event: any) => {
+                                                        this.setState({
+                                                            newChannel:
+                                                                event.target
+                                                                    .value,
+                                                        });
+                                                    }}
                                                     value={channel}
                                                 >
                                                     {channel}
@@ -305,7 +279,11 @@ export class ChatApp extends React.Component<
                                             (message: any) => (
                                                 <li
                                                     key={message.sid}
-                                                    ref={this.newMessageAdded}
+                                                    ref={(li: any) => {
+                                                        if (li) {
+                                                            li.scrollIntoView();
+                                                        }
+                                                    }}
                                                 >
                                                     <b>{message.author}:</b>{" "}
                                                     {message.body}
@@ -313,7 +291,15 @@ export class ChatApp extends React.Component<
                                             ),
                                         )}
                                     </ul>
-                                    <form onSubmit={this.sendMessage}>
+                                    <form
+                                        onSubmit={(event: any) => {
+                                            event.preventDefault();
+                                            const message = this.state
+                                                .newMessage;
+                                            this.setState({ newMessage: "" });
+                                            this.channel.sendMessage(message);
+                                        }}
+                                    >
                                         <label htmlFor="message">
                                             Message:{" "}
                                         </label>
@@ -321,7 +307,12 @@ export class ChatApp extends React.Component<
                                             type="text"
                                             name="message"
                                             id="message"
-                                            onChange={this.onMessageChanged}
+                                            onChange={(event: any) => {
+                                                this.setState({
+                                                    newMessage:
+                                                        event.target.value,
+                                                });
+                                            }}
                                             value={this.state.newMessage}
                                         />
                                         <button>Send</button>
@@ -348,7 +339,9 @@ export class ChatApp extends React.Component<
                         <div>
                             <NameBox
                                 name={this.state.name}
-                                onNameChanged={this.onNameChanged}
+                                onNameChanged={(event: any) => {
+                                    this.setState({ name: event.target.value });
+                                }}
                                 logIn={this.logIn}
                             />
                         </div>
@@ -363,17 +356,33 @@ export class ChatApp extends React.Component<
                                     type="text"
                                     name="newchannel"
                                     id="newchannel"
-                                    onChange={this.onChannelChanged}
+                                    onChange={(event) => {
+                                        this.setState({
+                                            newChannel: event.target.value,
+                                        });
+                                    }}
                                     value={this.state.newChannel}
                                 />
                                 <button>Create channel</button>
                             </form>
-                            <form onSubmit={this.addMember}>
+                            <form
+                                onSubmit={(event: any) => {
+                                    event.preventDefault();
+                                    if (this.channel) {
+                                        this.channel.add(this.state.inviteUser);
+                                    }
+                                    this.setState({ inviteUser: "" });
+                                }}
+                            >
                                 <input
                                     type="text"
                                     name="inviteuser"
                                     id="inviteuser"
-                                    onChange={this.onInviteChanged}
+                                    onChange={(event: any) => {
+                                        this.setState({
+                                            inviteUser: event.target.value,
+                                        });
+                                    }}
                                     value={this.state.inviteUser}
                                 />
                                 <button>Add user</button>
