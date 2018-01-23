@@ -3,7 +3,23 @@ import Chat from "twilio-chat";
 
 import { NameBox } from "./NameBox";
 
-export class ChatApp extends React.Component<any, any> {
+export class ChatApp extends React.Component<
+    any,
+    {
+        // set correct types
+        channel: any;
+        channels: any;
+        chatReady: any;
+        inviteUser: any;
+        messages: any;
+        name: any;
+        newChannel: any;
+        newMessage: any;
+        offlineMembers: any;
+        onlineMembers: any;
+        token: any;
+    }
+> {
     public chatClient: any;
     public channel: any;
     public name: string | null;
@@ -134,6 +150,7 @@ export class ChatApp extends React.Component<any, any> {
         this.setState({ newChannel: event.target.value });
     }
 
+    // inline all method used only once
     public onInviteChanged = (event: any) => {
         this.setState({ inviteUser: event.target.value });
     }
@@ -238,38 +255,10 @@ export class ChatApp extends React.Component<any, any> {
     }
 
     public render() {
-        const css = `
-        .chat {
-            height: 350px;
-            width: 600px;
-        }
-        .channels {
-            list-style-type: none;
-            position: relative;
-            top: -400px;
-            left: 650px;
-        }
-        .admin {
-            position: relative;
-            top: 130px;
-            width: 400px;
-        }
-        .messages {
-            list-style-type: none;
-            height: 350px;
-            overflow-y: scroll;
-            padding: 0;
-            margin: 0;
-        }
-
-        .messages li {
-            margin-bottom: 0.5em;
-            padding: 1em 0.5em;
-            background-color: #e8e8e8;
-        }
-        `;
         let loginOrChat;
         let adminOrNot;
+
+        // inline this within the component
         const messages = this.state.messages.map((message: any) => {
             return (
                 <li key={message.sid} ref={this.newMessageAdded}>
@@ -277,6 +266,8 @@ export class ChatApp extends React.Component<any, any> {
                 </li>
             );
         });
+
+        // inline this within the component
         const channels = this.state.channels.map((channel: any) => {
             return (
                 <li>
@@ -290,12 +281,8 @@ export class ChatApp extends React.Component<any, any> {
                 </li>
             );
         });
-        const onlineMembers = this.state.onlineMembers.map((member: any) => {
-            return <li>{member}</li>;
-        });
-        const offlineMembers = this.state.offlineMembers.map((member: any) => {
-            return <li>{member}</li>;
-        });
+
+        // inline this within the component
         if (this.loggedIn && this.channel) {
             loginOrChat = (
                 <div className="chat">
@@ -324,13 +311,18 @@ export class ChatApp extends React.Component<any, any> {
                     </div>
                     <div>
                         <b>Online</b>
-                        {onlineMembers}
+                        {this.state.onlineMembers.map((member: any) => (
+                            <li>{member}</li>
+                        ))}
                         <b>Offline</b>
-                        {offlineMembers}
+                        {this.state.offlineMembers.map((member: any) => (
+                            <li>{member}</li>
+                        ))}
                     </div>
                 </div>
             );
         } else if (this.loggedIn) {
+            // inline this within the component
             loginOrChat = (
                 <div>
                     <label>Join a channel: </label>
@@ -342,6 +334,7 @@ export class ChatApp extends React.Component<any, any> {
                 </div>
             );
         } else {
+            // inline this within the component
             loginOrChat = (
                 <div>
                     <NameBox
@@ -356,6 +349,7 @@ export class ChatApp extends React.Component<any, any> {
             this.loggedIn &&
             (this.name === "business" || this.name === "coach")
         ) {
+            // inline this within the component
             adminOrNot = (
                 <div className="admin">
                     <form onSubmit={this.createChannel}>
@@ -384,6 +378,7 @@ export class ChatApp extends React.Component<any, any> {
                             name="delchannel"
                             id="delchannel"
                             onChange={this.onChannelChanged}
+                            // fix this
                             value={this.state.delChannel}
                         />
                         <button>delete</button>
@@ -391,16 +386,45 @@ export class ChatApp extends React.Component<any, any> {
                 </div>
             );
         } else {
+            // inline this within the component
             adminOrNot = null;
         }
+
         return (
             <div>
-                <style>{css}</style>
+                <style>{`
+                    .chat {
+                        height: 350px;
+                        width: 600px;
+                    }
+                    .channels {
+                        list-style-type: none;
+                        position: relative;
+                        top: -400px;
+                        left: 650px;
+                    }
+                    .admin {
+                        position: relative;
+                        top: 130px;
+                        width: 400px;
+                    }
+                    .messages {
+                        list-style-type: none;
+                        height: 350px;
+                        overflow-y: scroll;
+                        padding: 0;
+                        margin: 0;
+                    }
+
+                    .messages li {
+                        margin-bottom: 0.5em;
+                        padding: 1em 0.5em;
+                        background-color: #e8e8e8;
+                    }
+                `}</style>
                 <div>{loginOrChat}</div>
                 <div>{adminOrNot}</div>
             </div>
         );
     }
 }
-
-export default ChatApp;
