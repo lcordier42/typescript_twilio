@@ -137,10 +137,6 @@ export class ChatApp extends React.Component<
         this.setState({ channels: channel });
     }
 
-    public onChannelChanged = (event: any) => {
-        this.setState({ newChannel: event.target.value });
-    }
-
     public onInviteChanged = (event: any) => {
         this.setState({ inviteUser: event.target.value });
     }
@@ -363,7 +359,11 @@ export class ChatApp extends React.Component<
                                     type="text"
                                     name="newchannel"
                                     id="newchannel"
-                                    onChange={this.onChannelChanged}
+                                    onChange={(event) => {
+                                        this.setState({
+                                            newChannel: event.target.value,
+                                        });
+                                    }}
                                     value={this.state.newChannel}
                                 />
                                 <button>Create channel</button>
