@@ -131,17 +131,6 @@ export class ChatApp extends React.Component<
         }));
     }
 
-    public createChannel = (event: any) => {
-        event.preventDefault();
-        this.chatClient
-            .createChannel({ uniqueName: this.state.newChannel })
-            .then((channel: any) => {
-                channel.add(this.name);
-                channel.add("coach");
-            });
-        this.setState({ newChannel: "" });
-    }
-
     public memberAdded = (members: string[]) => {
         this.setState({ onlineMembers: [] });
         this.setState({ offlineMembers: [] });
@@ -351,7 +340,20 @@ export class ChatApp extends React.Component<
                     {this.loggedIn &&
                     (this.name === "business" || this.name === "coach") ? (
                         <div className="admin">
-                            <form onSubmit={this.createChannel}>
+                            <form
+                                onSubmit={(event: any) => {
+                                    event.preventDefault();
+                                    this.chatClient
+                                        .createChannel({
+                                            uniqueName: this.state.newChannel,
+                                        })
+                                        .then((channel: any) => {
+                                            channel.add(this.name);
+                                            channel.add("coach");
+                                        });
+                                    this.setState({ newChannel: "" });
+                                }}
+                            >
                                 <input
                                     type="text"
                                     name="newchannel"
