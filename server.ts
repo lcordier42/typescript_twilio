@@ -7,7 +7,7 @@ import Twilio = require("twilio");
 
 dotenv.config();
 const config = {
-    port: 3000,
+    port: 1234,
     twilio: {
         accountSid: process.env.TWILIO_ACCOUNT_SID,
         admin: "RL3d68dbcbf8ec4c018d36d578330309c0",

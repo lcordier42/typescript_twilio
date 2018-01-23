@@ -27,216 +27,6 @@ export class ChatApp extends React.Component<any, any> {
         this.name = "";
     }
 
-    public componentDidMount() {
-        this.getToken();
-    }
-
-    public onNameChanged = (event: any) => {
-        this.setState({ name: event.target.value });
-    }
-
-    public logIn = (event: any) => {
-        event.preventDefault();
-        if (this.state.name !== "") {
-            sessionStorage.setItem("name", this.state.name);
-            this.loggedIn = true;
-            this.getToken();
-        }
-    }
-
-    public logOut = (event: any) => {
-        event.preventDefault();
-        this.setState({
-            channel: "",
-            channels: [],
-            chatReady: false,
-            inviteUser: "",
-            messages: [],
-            name: "",
-            newChannel: "",
-            newMessage: "",
-            offlineMembers: [],
-            onlineMembers: [],
-            token: "",
-        });
-        sessionStorage.removeItem("name");
-        sessionStorage.removeItem("loggedChannel");
-        this.loggedIn = false;
-        this.chatClient.shutdown();
-        this.channel = null;
-    }
-
-    public getToken = () => {
-        this.loggedIn = false;
-        this.name = sessionStorage.getItem("name");
-        if (this.name !== "" && this.name !== null) {
-            this.loggedIn = true;
-            fetch(`/token/${this.name}`, {
-                method: "POST",
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    this.setState({ token: data.token }, this.initChat);
-                });
-        } else {
-            this.loggedIn = false;
-        }
-    }
-
-    public initChat = () => {
-        Chat.create(this.state.token)
-            .then((client: any) => {
-                return (this.chatClient = client);
-            })
-            .then((client: any) => {
-                client.on("channelAdded", this.channelAdded);
-                return client;
-            })
-            .then((client: any) => {
-                const channelName =
-                    sessionStorage.getItem("loggedChannel") || "";
-                if (channelName !== "") {
-                    client
-                        .getChannelByUniqueName(channelName)
-                        .then((channel: any) => {
-                            this.channel = channel;
-                        })
-                        .then(() => {
-                            this.channel
-                                .getMessages()
-                                .then(this.messagesLoaded);
-                            this.channel.on("messageAdded", this.messageAdded);
-                            this.channel
-                                .getMembers()
-                                .then(this.memberAdded.bind(this));
-                        });
-                }
-            });
-    }
-
-    public channelAdded = (channel: any) => {
-        this.setState((prevState: any, props: any) => ({
-            channels: [...prevState.channels, channel.uniqueName],
-        }));
-    }
-
-    public channelList = (paginator: any) => {
-        let i;
-        const channel = [];
-
-        for (i = 0; i < paginator.items.length; i++) {
-            channel[i] = paginator.items[i].uniqueName;
-        }
-        this.setState({ channels: channel });
-    }
-
-    public onChannelChanged = (event: any) => {
-        this.setState({ newChannel: event.target.value });
-    }
-
-    public onInviteChanged = (event: any) => {
-        this.setState({ inviteUser: event.target.value });
-    }
-
-    public messagesLoaded = (messagePage: any) => {
-        this.setState({ messages: messagePage.items });
-    }
-
-    public messageAdded = (message: string) => {
-        this.setState((prevState: any, props: any) => ({
-            messages: [...prevState.messages, message],
-        }));
-    }
-
-    public onMessageChanged = (event: any) => {
-        this.setState({ newMessage: event.target.value });
-    }
-
-    public sendMessage = (event: any) => {
-        event.preventDefault();
-        const message = this.state.newMessage;
-        this.setState({ newMessage: "" });
-        this.channel.sendMessage(message);
-    }
-
-    public newMessageAdded = (li: any) => {
-        if (li) {
-            li.scrollIntoView();
-        }
-    }
-
-    public createChannel = (event: any) => {
-        event.preventDefault();
-        this.chatClient
-            .createChannel({ uniqueName: this.state.newChannel })
-            .then((channel: any) => {
-                channel.add(this.name);
-                channel.add("coach");
-            });
-        this.setState({ newChannel: "" });
-    }
-
-    public deleteChannel = (event: any) => {
-        event.preventDefault();
-        this.chatClient
-            .getChannelByUniqueName(this.state.newChannel)
-            .then((channel: any) => {
-                channel.delete();
-            });
-        this.setState({ newChannel: "" });
-    }
-
-    public joinChannel = (event: any) => {
-        event.preventDefault();
-        if (this.channel) {
-            this.channel.removeListener("messageAdded", this.messageAdded);
-        }
-        this.chatClient
-            .getChannelByUniqueName(this.state.newChannel)
-            .then((channel: any) => {
-                this.channel = channel;
-                sessionStorage.setItem("loggedChannel", channel.uniqueName);
-            })
-            .then(() => {
-                this.channel.getMessages().then(this.messagesLoaded);
-                this.channel.on("messageAdded", this.messageAdded);
-                this.channel.getMembers().then(this.memberAdded.bind(this));
-            });
-        this.setState({ newChannel: "" });
-    }
-
-    public memberAdded = (members: any) => {
-        this.setState({ onlineMembers: [] });
-        this.setState({ offlineMembers: [] });
-        members.map((member: any) => {
-            member.getUser().then((user: any) => {
-                if (user.online === true) {
-                    this.setState((prevState: any, props: any) => ({
-                        onlineMembers: [
-                            ...prevState.onlineMembers,
-                            member.identity,
-                        ],
-                    }));
-                } else {
-                    this.setState((prevState: any, props: any) => ({
-                        offlineMembers: [
-                            ...prevState.offlineMembers,
-                            member.identity,
-                        ],
-                    }));
-                }
-            });
-        });
-    }
-
-    public addMember = (event: any) => {
-        event.preventDefault();
-        if (this.channel) {
-            this.channel.add(this.state.inviteUser);
-        }
-        this.setState({ inviteUser: "" });
-    }
-
     public render() {
         const css = `
         .chat {
@@ -400,6 +190,216 @@ export class ChatApp extends React.Component<any, any> {
                 <div>{adminOrNot}</div>
             </div>
         );
+    }
+
+    public componentDidMount() {
+        this.getToken();
+    }
+
+    private onNameChanged = (event: any) => {
+        this.setState({ name: event.target.value });
+    }
+
+    private logIn = (event: any) => {
+        event.preventDefault();
+        if (this.state.name !== "") {
+            sessionStorage.setItem("name", this.state.name);
+            this.loggedIn = true;
+            this.getToken();
+        }
+    }
+
+    private logOut = (event: any) => {
+        event.preventDefault();
+        this.setState({
+            channel: "",
+            channels: [],
+            chatReady: false,
+            inviteUser: "",
+            messages: [],
+            name: "",
+            newChannel: "",
+            newMessage: "",
+            offlineMembers: [],
+            onlineMembers: [],
+            token: "",
+        });
+        sessionStorage.removeItem("name");
+        sessionStorage.removeItem("loggedChannel");
+        this.loggedIn = false;
+        this.chatClient.shutdown();
+        this.channel = null;
+    }
+
+    private getToken = () => {
+        this.loggedIn = false;
+        this.name = sessionStorage.getItem("name");
+        if (this.name !== "" && this.name !== null) {
+            this.loggedIn = true;
+            fetch(`/token/${this.name}`, {
+                method: "POST",
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    this.setState({ token: data.token }, this.initChat);
+                });
+        } else {
+            this.loggedIn = false;
+        }
+    }
+
+    private initChat = () => {
+        Chat.create(this.state.token)
+            .then((client: any) => {
+                return (this.chatClient = client);
+            })
+            .then((client: any) => {
+                client.on("channelAdded", this.channelAdded);
+                return client;
+            })
+            .then((client: any) => {
+                const channelName =
+                    sessionStorage.getItem("loggedChannel") || "";
+                if (channelName !== "") {
+                    client
+                        .getChannelByUniqueName(channelName)
+                        .then((channel: any) => {
+                            this.channel = channel;
+                        })
+                        .then(() => {
+                            this.channel
+                                .getMessages()
+                                .then(this.messagesLoaded);
+                            this.channel.on("messageAdded", this.messageAdded);
+                            this.channel
+                                .getMembers()
+                                .then(this.memberAdded.bind(this));
+                        });
+                }
+            });
+    }
+
+    private channelAdded = (channel: any) => {
+        this.setState((prevState: any, props: any) => ({
+            channels: [...prevState.channels, channel.uniqueName],
+        }));
+    }
+
+    private channelList = (paginator: any) => {
+        let i;
+        const channel = [];
+
+        for (i = 0; i < paginator.items.length; i++) {
+            channel[i] = paginator.items[i].uniqueName;
+        }
+        this.setState({ channels: channel });
+    }
+
+    private onChannelChanged = (event: any) => {
+        this.setState({ newChannel: event.target.value });
+    }
+
+    private onInviteChanged = (event: any) => {
+        this.setState({ inviteUser: event.target.value });
+    }
+
+    private messagesLoaded = (messagePage: any) => {
+        this.setState({ messages: messagePage.items });
+    }
+
+    private messageAdded = (message: string) => {
+        this.setState((prevState: any, props: any) => ({
+            messages: [...prevState.messages, message],
+        }));
+    }
+
+    private onMessageChanged = (event: any) => {
+        this.setState({ newMessage: event.target.value });
+    }
+
+    private sendMessage = (event: any) => {
+        event.preventDefault();
+        const message = this.state.newMessage;
+        this.setState({ newMessage: "" });
+        this.channel.sendMessage(message);
+    }
+
+    private newMessageAdded = (li: any) => {
+        if (li) {
+            li.scrollIntoView();
+        }
+    }
+
+    private createChannel = (event: any) => {
+        event.preventDefault();
+        this.chatClient
+            .createChannel({ uniqueName: this.state.newChannel })
+            .then((channel: any) => {
+                channel.add(this.name);
+                channel.add("coach");
+            });
+        this.setState({ newChannel: "" });
+    }
+
+    private deleteChannel = (event: any) => {
+        event.preventDefault();
+        this.chatClient
+            .getChannelByUniqueName(this.state.newChannel)
+            .then((channel: any) => {
+                channel.delete();
+            });
+        this.setState({ newChannel: "" });
+    }
+
+    private joinChannel = (event: any) => {
+        event.preventDefault();
+        if (this.channel) {
+            this.channel.removeListener("messageAdded", this.messageAdded);
+        }
+        this.chatClient
+            .getChannelByUniqueName(this.state.newChannel)
+            .then((channel: any) => {
+                this.channel = channel;
+                sessionStorage.setItem("loggedChannel", channel.uniqueName);
+            })
+            .then(() => {
+                this.channel.getMessages().then(this.messagesLoaded);
+                this.channel.on("messageAdded", this.messageAdded);
+                this.channel.getMembers().then(this.memberAdded.bind(this));
+            });
+        this.setState({ newChannel: "" });
+    }
+
+    private memberAdded = (members: any) => {
+        this.setState({ onlineMembers: [] });
+        this.setState({ offlineMembers: [] });
+        members.map((member: any) => {
+            member.getUser().then((user: any) => {
+                if (user.online === true) {
+                    this.setState((prevState: any, props: any) => ({
+                        onlineMembers: [
+                            ...prevState.onlineMembers,
+                            member.identity,
+                        ],
+                    }));
+                } else {
+                    this.setState((prevState: any, props: any) => ({
+                        offlineMembers: [
+                            ...prevState.offlineMembers,
+                            member.identity,
+                        ],
+                    }));
+                }
+            });
+        });
+    }
+
+    private addMember = (event: any) => {
+        event.preventDefault();
+        if (this.channel) {
+            this.channel.add(this.state.inviteUser);
+        }
+        this.setState({ inviteUser: "" });
     }
 }
 
