@@ -196,7 +196,7 @@ export class ChatApp extends React.Component<
                             <div className="channels">
                                 <label>Join a channel: </label>
                                 <form
-                                    onSubmit={(event: any) => {
+                                    onSubmit={async (event) => {
                                         event.preventDefault();
                                         if (this.channel) {
                                             this.channel.removeListener(
@@ -204,33 +204,27 @@ export class ChatApp extends React.Component<
                                                 this.messageAdded,
                                             );
                                         }
-                                        this.chatClient
-                                            .getChannelByUniqueName(
-                                                this.state.newChannel,
-                                            )
-                                            .then((channel: any) => {
-                                                this.channel = channel;
-                                                sessionStorage.setItem(
-                                                    "loggedChannel",
-                                                    channel.uniqueName,
-                                                );
-                                            })
-                                            .then(() => {
-                                                this.channel
-                                                    .getMessages()
-                                                    .then(this.messagesLoaded);
-                                                this.channel.on(
-                                                    "messageAdded",
-                                                    this.messageAdded,
-                                                );
-                                                this.channel
-                                                    .getMembers()
-                                                    .then(
-                                                        this.memberAdded.bind(
-                                                            this,
-                                                        ),
-                                                    );
-                                            });
+
+                                        const channel = await this.chatClient.getChannelByUniqueName(
+                                            this.state.newChannel,
+                                        );
+
+                                        this.channel = channel;
+                                        sessionStorage.setItem(
+                                            "loggedChannel",
+                                            channel.uniqueName,
+                                        );
+
+                                        const messages = await this.channel.getMessages();
+                                        this.messagesLoaded(messages);
+                                        this.channel.on(
+                                            "messageAdded",
+                                            this.messageAdded,
+                                        );
+
+                                        const members = await this.channel.getMembers();
+                                        this.memberAdded(members);
+
                                         this.setState({ newChannel: "" });
                                     }}
                                 >
