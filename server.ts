@@ -5,7 +5,6 @@ import * as KoaRouter from "koa-router";
 import * as appBuilder from "next";
 import Twilio = require("twilio");
 
-// tslint:disable no-console
 dotenv.config();
 const config = {
     twilio: {
@@ -61,31 +60,18 @@ app.prepare().then(() => {
             identity,
             token: token.toJwt(),
         });
-        service
-            .users(identity)
-            .update({
+        try {
+            const response = await service.users(identity).update({
                 roleSid: permission,
-            })
-            .then((response: any) => {
-                console.log(response);
-            })
-            .catch((error: any) => {
-                if (error.code === 20404) {
-                    service.users
-                        .create({
-                            identity,
-                            roleSid: permission,
-                        })
-                        .then((response: any) => {
-                            console.log(response);
-                        })
-                        .catch((err: any) => {
-                            console.log(err);
-                        });
-                } else {
-                    console.log(error);
-                }
             });
+        } catch (error) {
+            if (error.code === 20404) {
+                await service.users.create({
+                    identity,
+                    roleSid: permission,
+                });
+            }
+        }
     });
 
     koa.use(async (ctx: any, next: any) => {
@@ -95,5 +81,6 @@ app.prepare().then(() => {
 
     koa.use(router.routes());
     const server = koa.listen(parseInt(process.env.PORT || "3000", 10));
+    // tslint:disable-next-line no-console
     console.log(JSON.stringify(server.address(), null, 4));
 });
