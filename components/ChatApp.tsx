@@ -235,141 +235,19 @@ export class ChatApp extends React.Component<
     }
 
     public render() {
-        let loginOrChat;
-        let adminOrNot;
-
-        // inline this within the component
-        const messages = this.state.messages.map((message: any) => {
-            return (
-                <li key={message.sid} ref={this.newMessageAdded}>
-                    <b>{message.author}:</b> {message.body}
-                </li>
-            );
-        });
-
-        // inline this within the component
-        const channels = this.state.channels.map((channel: any) => {
-            return (
-                <li>
-                    <button
-                        type="submit"
-                        onClick={this.onChannelChanged}
-                        value={channel}
-                    >
-                        {channel}
-                    </button>
-                </li>
-            );
-        });
-
-        // inline this within the component
-        if (this.loggedIn && this.channel) {
-            loginOrChat = (
-                <div className="chat">
-                    <h3>Messages</h3>
-                    <p>Logged in as {this.name}</p>
-                    <ul className="messages">{messages}</ul>
-                    <form onSubmit={this.sendMessage}>
-                        <label htmlFor="message">Message: </label>
-                        <input
-                            type="text"
-                            name="message"
-                            id="message"
-                            onChange={this.onMessageChanged}
-                            value={this.state.newMessage}
-                        />
-                        <button>Send</button>
-                    </form>
-                    <br />
-                    <div className="channels">
-                        <label>Join a channel: </label>
-                        <form onSubmit={this.joinChannel}>{channels}</form>
-                        <br />
-                        <form onSubmit={this.logOut}>
-                            <button>Log out</button>
-                        </form>
-                    </div>
-                    <div>
-                        <b>Online</b>
-                        {this.state.onlineMembers.map((member: any) => (
-                            <li>{member}</li>
-                        ))}
-                        <b>Offline</b>
-                        {this.state.offlineMembers.map((member: any) => (
-                            <li>{member}</li>
-                        ))}
-                    </div>
-                </div>
-            );
-        } else if (this.loggedIn) {
-            // inline this within the component
-            loginOrChat = (
-                <div>
-                    <label>Join a channel: </label>
-                    <form onSubmit={this.joinChannel}>{channels}</form>
-                    <br />
-                    <form onSubmit={this.logOut}>
-                        <button>Log out</button>
-                    </form>
-                </div>
-            );
-        } else {
-            // inline this within the component
-            loginOrChat = (
-                <div>
-                    <NameBox
-                        name={this.state.name}
-                        onNameChanged={this.onNameChanged}
-                        logIn={this.logIn}
-                    />
-                </div>
-            );
-        }
-        if (
-            this.loggedIn &&
-            (this.name === "business" || this.name === "coach")
-        ) {
-            // inline this within the component
-            adminOrNot = (
-                <div className="admin">
-                    <form onSubmit={this.createChannel}>
-                        <input
-                            type="text"
-                            name="newchannel"
-                            id="newchannel"
-                            onChange={this.onChannelChanged}
-                            value={this.state.newChannel}
-                        />
-                        <button>Create channel</button>
-                    </form>
-                    <form onSubmit={this.addMember}>
-                        <input
-                            type="text"
-                            name="inviteuser"
-                            id="inviteuser"
-                            onChange={this.onInviteChanged}
-                            value={this.state.inviteUser}
-                        />
-                        <button>Add user</button>
-                    </form>
-                </div>
-            );
-        } else {
-            // inline this within the component
-            adminOrNot = null;
-        }
-
         return (
             <div>
                 <style>{`
                     .chat {
+                        position:relative;
+                        top: -120px;
                         height: 350px;
                         width: 600px;
                     }
                     .channels {
                         list-style-type: none;
                         position: relative;
-                        top: -400px;
+                        top: 40px;
                         left: 650px;
                     }
                     .admin {
@@ -391,8 +269,118 @@ export class ChatApp extends React.Component<
                         background-color: #e8e8e8;
                     }
                 `}</style>
-                <div>{loginOrChat}</div>
-                <div>{adminOrNot}</div>
+                <div>
+                    {this.loggedIn ? (
+                        <div>
+                            <div className="channels">
+                                <label>Join a channel: </label>
+                                <form onSubmit={this.joinChannel}>
+                                    {this.state.channels.map(
+                                        (channel: any, i: number) => (
+                                            <li key={i}>
+                                                <button
+                                                    type="submit"
+                                                    onClick={
+                                                        this.onChannelChanged
+                                                    }
+                                                    value={channel}
+                                                >
+                                                    {channel}
+                                                </button>
+                                            </li>
+                                        ),
+                                    )}
+                                </form>
+                                <br />
+                                <form onSubmit={this.logOut}>
+                                    <button>Log out</button>
+                                </form>
+                            </div>
+                            {this.channel ? (
+                                <div className="chat">
+                                    <h3>Messages</h3>
+                                    <p>Logged in as {this.name}</p>
+                                    <ul className="messages">
+                                        {this.state.messages.map(
+                                            (message: any) => (
+                                                <li
+                                                    key={message.sid}
+                                                    ref={this.newMessageAdded}
+                                                >
+                                                    <b>{message.author}:</b>{" "}
+                                                    {message.body}
+                                                </li>
+                                            ),
+                                        )}
+                                    </ul>
+                                    <form onSubmit={this.sendMessage}>
+                                        <label htmlFor="message">
+                                            Message:{" "}
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="message"
+                                            id="message"
+                                            onChange={this.onMessageChanged}
+                                            value={this.state.newMessage}
+                                        />
+                                        <button>Send</button>
+                                    </form>
+                                    <br />
+                                    <div>
+                                        <b>Online</b>
+                                        {this.state.onlineMembers.map(
+                                            (member: any, i: number) => (
+                                                <li key={i}>{member}</li>
+                                            ),
+                                        )}
+                                        <b>Offline</b>
+                                        {this.state.offlineMembers.map(
+                                            (member: any, i: number) => (
+                                                <li key={i}>{member}</li>
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
+                            ) : null}
+                        </div>
+                    ) : (
+                        <div>
+                            <NameBox
+                                name={this.state.name}
+                                onNameChanged={this.onNameChanged}
+                                logIn={this.logIn}
+                            />
+                        </div>
+                    )}
+                </div>
+                <div>
+                    {this.loggedIn &&
+                    (this.name === "business" || this.name === "coach") ? (
+                        <div className="admin">
+                            <form onSubmit={this.createChannel}>
+                                <input
+                                    type="text"
+                                    name="newchannel"
+                                    id="newchannel"
+                                    onChange={this.onChannelChanged}
+                                    value={this.state.newChannel}
+                                />
+                                <button>Create channel</button>
+                            </form>
+                            <form onSubmit={this.addMember}>
+                                <input
+                                    type="text"
+                                    name="inviteuser"
+                                    id="inviteuser"
+                                    onChange={this.onInviteChanged}
+                                    value={this.state.inviteUser}
+                                />
+                                <button>Add user</button>
+                            </form>
+                        </div>
+                    ) : null}
+                </div>
             </div>
         );
     }
