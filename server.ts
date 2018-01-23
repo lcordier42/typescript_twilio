@@ -28,6 +28,7 @@ const service = client.chat.services(config.twilio.chatServiceSid);
 
 const app = appBuilder({
     conf: { poweredByHeader: false },
+    dev: process.env.NODE_ENV !== "production",
 });
 const handle = app.getRequestHandler();
 app.prepare().then(() => {
