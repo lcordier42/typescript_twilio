@@ -1,5 +1,6 @@
 import * as React from "react";
 
+
 export const NameBox: React.SFC<{
     name: string;
     onNameChanged: any;
