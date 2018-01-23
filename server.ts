@@ -7,7 +7,6 @@ import Twilio = require("twilio");
 
 dotenv.config();
 const config = {
-    port: 3000,
     twilio: {
         accountSid: process.env.TWILIO_ACCOUNT_SID,
         admin: "RL3d68dbcbf8ec4c018d36d578330309c0",
@@ -33,8 +32,8 @@ const app = appBuilder({
 const handle = app.getRequestHandler();
 app.prepare().then(() => {
     const router = new KoaRouter();
-    const server = new Koa();
-    server.use(koaBodyParser());
+    const koa = new Koa();
+    koa.use(koaBodyParser());
 
     router.get("*", async (ctx: any) => {
         await handle(ctx.req, ctx.res);
@@ -88,12 +87,13 @@ app.prepare().then(() => {
             });
     });
 
-    server.use(async (ctx: any, next: any) => {
+    koa.use(async (ctx: any, next: any) => {
         ctx.res.statusCode = 200;
         await next();
     });
 
-    server.use(router.routes());
-    server.listen(config.port);
+    koa.use(router.routes());
+    const server = koa.listen(parseInt(process.env.PORT || "3000", 10));
+    // tslint:disable-next-line no-console
+    console.log(JSON.stringify(server.address(), null, 4));
 });
-console.log("Server running on port" + config.port);
