@@ -271,7 +271,7 @@ export class ChatApp extends React.Component<
                                             }}
                                             value={this.state.newMessage}
                                         />
-                                        <button>Send</button>
+                                        <button name="send">Send</button>
                                     </form>
                                     <br />
                                     <div>
@@ -324,13 +324,45 @@ export class ChatApp extends React.Component<
                             <form
                                 onSubmit={async (event) => {
                                     event.preventDefault();
-                                    const channel = this.chatClient.createChannel(
-                                        {
-                                            uniqueName: this.state.newChannel,
-                                        },
-                                    );
-                                    channel.add(this.name);
-                                    channel.add("coach");
+                                    try {
+                                        const channel = await this.chatClient.createChannel(
+                                            {
+                                                uniqueName: this.state
+                                                    .newChannel,
+                                            },
+                                        );
+                                        channel.add(this.name);
+                                        channel.add("coach");
+                                    } catch (error) {
+                                        if (error.code === 50307) {
+                                            if (this.channel) {
+                                                this.channel.removeListener(
+                                                    "messageAdded",
+                                                    this.messageAdded,
+                                                );
+                                            }
+
+                                            const channel = await this.chatClient.getChannelByUniqueName(
+                                                this.state.newChannel,
+                                            );
+
+                                            this.channel = channel;
+                                            sessionStorage.setItem(
+                                                "loggedChannel",
+                                                channel.uniqueName,
+                                            );
+
+                                            const messages = await this.channel.getMessages();
+                                            this.messagesLoaded(messages);
+                                            this.channel.on(
+                                                "messageAdded",
+                                                this.messageAdded,
+                                            );
+
+                                            const members = await this.channel.getMembers();
+                                            this.memberAdded(members);
+                                        }
+                                    }
                                     this.setState({ newChannel: "" });
                                 }}
                             >
@@ -345,7 +377,7 @@ export class ChatApp extends React.Component<
                                     }}
                                     value={this.state.newChannel}
                                 />
-                                <button>Create channel</button>
+                                <button name="create">Create channel</button>
                             </form>
                             <form
                                 onSubmit={(event) => {
