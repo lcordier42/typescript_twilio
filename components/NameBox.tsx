@@ -5,7 +5,7 @@ export const NameBox: React.SFC<{
     onNameChanged: any;
     logIn: any;
 }> = ({ name, onNameChanged, logIn }) => (
-    <div>
+    <div className="NameBox">
         <form onSubmit={logIn}>
             <select name="name" id="name" onChange={onNameChanged} value={name}>
                 <option value="guest">guest</option>
@@ -13,7 +13,9 @@ export const NameBox: React.SFC<{
                 <option value="candidat">candidat</option>
                 <option value="coach">coach</option>
             </select>
-            <button type="submit">Log in</button>
+            <button name="login" type="submit">
+                Log in
+            </button>
         </form>
     </div>
 );
