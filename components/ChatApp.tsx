@@ -185,6 +185,7 @@ export class ChatApp extends React.Component<
                                         <li key={i}>
                                             <button
                                                 type="submit"
+                                                name={channel}
                                                 onClick={(event: any) => {
                                                     this.setState({
                                                         newChannel:
@@ -222,7 +223,7 @@ export class ChatApp extends React.Component<
                                         this.channel = null;
                                     }}
                                 >
-                                    <button>Log out</button>
+                                    <button name="logout">Log out</button>
                                 </form>
                             </div>
                             {this.channel ? (
@@ -288,7 +289,11 @@ export class ChatApp extends React.Component<
                                         )}
                                     </div>
                                 </div>
-                            ) : null}
+                            ) : (
+                                <h1 className="noChannelJoined">
+                                    Join a channel
+                                </h1>
+                            )}
                         </div>
                     ) : (
                         <div>
