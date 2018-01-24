@@ -21,6 +21,7 @@
         "@types/puppeteer": "0.13.9",
         "@types/react-dom": "16.0.3",
         "@types/twilio": "0.0.9",
+        "casual": "1.5.19",
         "jest": "22.1.4",
         "nodemon": "1.14.11",
         "puppeteer": "0.13.0",
