@@ -110,25 +110,14 @@ export class ChatApp extends React.Component<
 
     public render() {
         return (
-            <div>
+            <main>
                 <style>{`
-                    .chat {
-                        position:relative;
-                        top: -120px;
-                        height: 350px;
-                        width: 600px;
-                    }
-                    .channels {
-                        list-style-type: none;
-                        position: relative;
-                        top: 40px;
-                        left: 650px;
-                    }
                     .admin {
                         position: relative;
                         top: 130px;
                         width: 400px;
                     }
+
                     .messages {
                         list-style-type: none;
                         height: 350px;
@@ -404,7 +393,7 @@ export class ChatApp extends React.Component<
                         </div>
                     ) : null}
                 </div>
-            </div>
+            </main>
         );
     }
 }
