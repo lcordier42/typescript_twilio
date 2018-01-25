@@ -2,6 +2,7 @@ import "isomorphic-fetch";
 import * as React from "react";
 
 import { ChatApp } from "../components/ChatApp";
+import { Nav } from "../components/Nav";
 
 const IndexPage: React.SFC<{
     role: string;
@@ -9,11 +10,9 @@ const IndexPage: React.SFC<{
     username: string;
 }> = ({ role, token, username }) => (
     <div>
-        <header>
-            <h1>Test Chat</h1>
-            <pre>{JSON.stringify({ token, role, username }, undefined, 4)}</pre>
-        </header>
+        <Nav />
         <hr />
+        <h1>Index</h1>
         <ChatApp role={role} token={token} username={username} />
     </div>
 );

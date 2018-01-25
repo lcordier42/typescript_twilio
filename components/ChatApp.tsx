@@ -19,7 +19,7 @@ export class ChatApp extends React.Component<
     }
 > {
     private channel: any;
-    private chatClient: any;
+    private chatClient: Chat | undefined;
 
     constructor() {
         // @ts-ignore
@@ -54,6 +54,14 @@ export class ChatApp extends React.Component<
             this.channel.on("messageAdded", this.messageAdded);
             const members = await this.channel.getMembers();
             this.memberAdded(members);
+        }
+    }
+
+    public componentWillUnmount() {
+        sessionStorage.removeItem("username");
+        sessionStorage.removeItem("loggedChannel");
+        if (this.chatClient !== undefined) {
+            this.chatClient.shutdown();
         }
     }
 
@@ -177,31 +185,6 @@ export class ChatApp extends React.Component<
                                             </button>
                                         </li>
                                     ))}
-                                </form>
-                                <br />
-                                <form
-                                    onSubmit={(event) => {
-                                        event.preventDefault();
-                                        this.setState({
-                                            channels: [],
-                                            inviteUser: "",
-                                            messages: [],
-                                            newChannel: "",
-                                            newMessage: "",
-                                            offlineMembers: [],
-                                            onlineMembers: [],
-                                            username: "",
-                                        });
-                                        sessionStorage.removeItem("username");
-                                        sessionStorage.removeItem(
-                                            "loggedChannel",
-                                        );
-                                        this.chatClient.shutdown();
-                                        this.chatClient = undefined;
-                                        this.channel = null;
-                                    }}
-                                >
-                                    <button name="logout">Log out</button>
                                 </form>
                             </div>
                             {this.channel ? (
