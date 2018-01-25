@@ -2,24 +2,28 @@ import * as React from "react";
 import Chat from "twilio-chat";
 
 export class ChatApp extends React.Component<
-    { role: string; username: string },
+    {
+        role: string;
+        token: string;
+        username: string;
+    },
     {
         channels: string[];
         inviteUser: string;
         messages: string[];
-        username: string;
         newChannel: string;
         newMessage: string;
         offlineMembers: string[];
         onlineMembers: string[];
-        token: string;
+        username: string;
     }
 > {
     private channel: any;
-    private chatClient: any;
-    private loggedIn: boolean;
-    constructor(props: any) {
-        super(props);
+    private chatClient: Chat | undefined;
+
+    constructor() {
+        // @ts-ignore
+        super(...arguments);
         this.state = {
             channels: [],
             inviteUser: "",
@@ -28,33 +32,12 @@ export class ChatApp extends React.Component<
             newMessage: "",
             offlineMembers: [],
             onlineMembers: [],
-            token: "",
             username: "",
         };
     }
 
-    public componentDidMount() {
-        this.getToken();
-    }
-
-    public getToken = async () => {
-        this.loggedIn = false;
-        if (this.props.username !== "anonymous") {
-            this.loggedIn = true;
-            const response = await fetch(
-                `/token/${this.props.username}/${this.props.role}`,
-                {
-                    method: "POST",
-                },
-            );
-            const data = await response.json();
-            this.setState({ token: data.token }, this.initChat);
-        }
-    }
-
-    public initChat = async () => {
-        const client = await Chat.create(this.state.token);
-        this.chatClient = client;
+    public async componentDidMount() {
+        this.chatClient = await Chat.create(this.props.token);
         this.chatClient.on("channelAdded", (channel: any) => {
             this.setState((prevState, props) => ({
                 channels: [...prevState.channels, channel.uniqueName],
@@ -71,6 +54,14 @@ export class ChatApp extends React.Component<
             this.channel.on("messageAdded", this.messageAdded);
             const members = await this.channel.getMembers();
             this.memberAdded(members);
+        }
+    }
+
+    public componentWillUnmount() {
+        sessionStorage.removeItem("username");
+        sessionStorage.removeItem("loggedChannel");
+        if (this.chatClient !== undefined) {
+            this.chatClient.shutdown();
         }
     }
 
@@ -136,7 +127,11 @@ export class ChatApp extends React.Component<
                     }
                 `}</style>
                 <div>
-                    {this.loggedIn ? (
+                    {this.chatClient === undefined ? (
+                        <div>
+                            <h1>Chat client is undefined</h1>
+                        </div>
+                    ) : (
                         <div>
                             <div className="channels">
                                 <label>Join a channel: </label>
@@ -190,32 +185,6 @@ export class ChatApp extends React.Component<
                                             </button>
                                         </li>
                                     ))}
-                                </form>
-                                <br />
-                                <form
-                                    onSubmit={(event) => {
-                                        event.preventDefault();
-                                        this.setState({
-                                            channels: [],
-                                            inviteUser: "",
-                                            messages: [],
-                                            newChannel: "",
-                                            newMessage: "",
-                                            offlineMembers: [],
-                                            onlineMembers: [],
-                                            token: "",
-                                            username: "",
-                                        });
-                                        sessionStorage.removeItem("username");
-                                        sessionStorage.removeItem(
-                                            "loggedChannel",
-                                        );
-                                        this.loggedIn = false;
-                                        this.chatClient.shutdown();
-                                        this.channel = null;
-                                    }}
-                                >
-                                    <button name="logout">Log out</button>
                                 </form>
                             </div>
                             {this.channel ? (
@@ -287,16 +256,12 @@ export class ChatApp extends React.Component<
                                 </h1>
                             )}
                         </div>
-                    ) : (
-                        <div>
-                            <h1>You're actually not logged</h1>
-                        </div>
                     )}
                 </div>
                 <div>
-                    {this.loggedIn &&
-                    (this.props.role === "admin" ||
-                        this.props.role === "employer") ? (
+                    {this.chatClient === undefined ||
+                    (this.props.role !== "admin" &&
+                        this.props.role !== "employer") ? null : (
                         <div className="admin">
                             <form
                                 onSubmit={async (event) => {
@@ -382,7 +347,7 @@ export class ChatApp extends React.Component<
                                 <button>Add user</button>
                             </form>
                         </div>
-                    ) : null}
+                    )}
                 </div>
             </main>
         );
