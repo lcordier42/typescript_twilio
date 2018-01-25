@@ -309,7 +309,10 @@ export class ChatApp extends React.Component<
                                             },
                                         );
                                         channel.add(this.props.username);
-                                        channel.add("alex");
+                                        // Adding the coach alex to the channel
+                                        if (this.props.username !== "alex") {
+                                            channel.add("alex");
+                                        }
                                     } catch (error) {
                                         if (error.code === 50307) {
                                             if (this.channel) {
