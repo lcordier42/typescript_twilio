@@ -53,8 +53,9 @@ export class ChatApp extends React.Component<
     }
 
     public initChat = async () => {
-        const client = await Chat.create(this.state.token);
-        this.chatClient = client;
+        this.chatClient = await fetch(`/server/${this.state.token}`, {
+            method: "POST",
+        });
         this.chatClient.on("channelAdded", (channel: any) => {
             this.setState((prevState, props) => ({
                 channels: [...prevState.channels, channel.uniqueName],
