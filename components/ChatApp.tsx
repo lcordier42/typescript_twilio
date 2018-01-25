@@ -2,55 +2,42 @@ import * as React from "react";
 import Chat from "twilio-chat";
 
 export class ChatApp extends React.Component<
-    { role: string; username: string },
+    {
+        role: string;
+        token: string;
+        username: string;
+    },
     {
         channels: string[];
         inviteUser: string;
-        loggedIn: boolean;
         messages: string[];
         newChannel: string;
         newMessage: string;
         offlineMembers: string[];
         onlineMembers: string[];
-        token: string;
         username: string;
     }
 > {
     private channel: any;
     private chatClient: any;
-    constructor(props: any) {
-        super(props);
+
+    constructor() {
+        // @ts-ignore
+        super(...arguments);
         this.state = {
             channels: [],
             inviteUser: "",
-            loggedIn: false,
             messages: [],
             newChannel: "",
             newMessage: "",
             offlineMembers: [],
             onlineMembers: [],
-            token: "",
             username: "",
         };
     }
 
     public async componentDidMount() {
-        if (this.props.username !== "anonymous") {
-            this.setState({ loggedIn: true });
-            const response = await fetch(
-                `/token/${this.props.username}/${this.props.role}`,
-                {
-                    method: "POST",
-                },
-            );
-            const data = await response.json();
-            this.setState({ token: data.token }, this.initChat);
-        }
-    }
-
-    public initChat = async () => {
-        const client = await Chat.create(this.state.token);
-        this.chatClient = client;
+        this.chatClient = await Chat.create(this.props.token);
         this.chatClient.on("channelAdded", (channel: any) => {
             this.setState((prevState, props) => ({
                 channels: [...prevState.channels, channel.uniqueName],
@@ -132,7 +119,11 @@ export class ChatApp extends React.Component<
                     }
                 `}</style>
                 <div>
-                    {this.state.loggedIn ? (
+                    {this.chatClient === undefined ? (
+                        <div>
+                            <h1>Chat client is undefined</h1>
+                        </div>
+                    ) : (
                         <div>
                             <div className="channels">
                                 <label>Join a channel: </label>
@@ -199,15 +190,14 @@ export class ChatApp extends React.Component<
                                             newMessage: "",
                                             offlineMembers: [],
                                             onlineMembers: [],
-                                            token: "",
                                             username: "",
                                         });
                                         sessionStorage.removeItem("username");
                                         sessionStorage.removeItem(
                                             "loggedChannel",
                                         );
-                                        this.setState({ loggedIn: false });
                                         this.chatClient.shutdown();
+                                        this.chatClient = undefined;
                                         this.channel = null;
                                     }}
                                 >
@@ -283,16 +273,12 @@ export class ChatApp extends React.Component<
                                 </h1>
                             )}
                         </div>
-                    ) : (
-                        <div>
-                            <h1>You're actually not logged</h1>
-                        </div>
                     )}
                 </div>
                 <div>
-                    {this.state.loggedIn &&
-                    (this.props.role === "admin" ||
-                        this.props.role === "employer") ? (
+                    {this.chatClient === undefined ||
+                    (this.props.role !== "admin" &&
+                        this.props.role !== "employer") ? null : (
                         <div className="admin">
                             <form
                                 onSubmit={async (event) => {
@@ -378,7 +364,7 @@ export class ChatApp extends React.Component<
                                 <button>Add user</button>
                             </form>
                         </div>
-                    ) : null}
+                    )}
                 </div>
             </main>
         );
