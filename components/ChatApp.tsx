@@ -39,7 +39,7 @@ export class ChatApp extends React.Component<
 
     public getToken = async () => {
         this.loggedIn = false;
-        if (this.props.username !== "" && this.props.username !== null) {
+        if (this.props.username !== "anonymous") {
             this.loggedIn = true;
             const response = await fetch(
                 `/token/${this.props.username}/${this.props.role}`,
