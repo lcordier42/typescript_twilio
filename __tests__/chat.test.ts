@@ -76,7 +76,7 @@ beforeAll(async () => {
     await initCandidatePage(candidatePage);
 });
 
-// test("An employer can create a new chat");
+test.skip("An employer can create a new chat");
 
 test("An employer can continue an existing chat", async () => {
     // connecting
