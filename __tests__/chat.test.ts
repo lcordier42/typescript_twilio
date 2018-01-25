@@ -29,27 +29,27 @@ async function getPage(browser: puppeteer.Browser): Promise<puppeteer.Page> {
 }
 
 async function initCandidatePage(page: puppeteer.Page) {
-    await page.goto(`http://localhost:${process.env.PORT}`);
+    await page.goto(`http://localhost:${process.env.PORT}?role=candidate&username=christopher`);
     // select "candidate" role
-    await page.select("#name", "candidat");
+    await page.select("#username", "candidat");
     await page.click('[type="submit"]');
     // wait for available channels to be displayed
     await page.waitFor(".channels form li");
 }
 
 async function initCoachPage(page: puppeteer.Page) {
-    await page.goto(`http://localhost:${process.env.PORT}`);
+    await page.goto(`http://localhost:${process.env.PORT}?role=admin&username=alex`);
     // select "admin" role
-    await page.select("#name", "coach");
+    await page.select("#username", "coach");
     await page.click('[type="submit"]');
     // wait for available channels to be displayed
     await page.waitFor(".channels form li");
 }
 
 async function initEmployerPage(page: puppeteer.Page) {
-    await page.goto(`http://localhost:${process.env.PORT}`);
+    await page.goto(`http://localhost:${process.env.PORT}?role=employer&username=emilio`);
     // select "employer" role
-    await page.select("#name", "business");
+    await page.select("#username", "business");
     await page.click('[type="submit"]');
     // wait for available channels to be displayed
     await page.waitFor(".channels form li");

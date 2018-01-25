@@ -52,7 +52,7 @@ test(
     async () => {
         await pageCandidate.goto(`http://localhost:${process.env.PORT}`);
 
-        await pageCandidate.select('[name="name"]', "candidat"); // je suis un candidat
+        await pageCandidate.select('[name="username"]', "candidat"); // je suis un candidat
         await pageCandidate.click('[name="login"]'); // je me connecte
         await pageCandidate.waitFor(1000);
         // je vérifie qu'aucun channel s'affiche
@@ -68,7 +68,7 @@ test(
     async () => {
         await pageEmployer.goto(`http://localhost:${process.env.PORT}`);
 
-        await pageEmployer.select('[name="name"]', "business"); // je suis une entreprise
+        await pageEmployer.select('[name="username"]', "business"); // je suis une entreprise
         await pageEmployer.click('[name="login"]'); // je me connecte
         await pageEmployer.waitFor(1000);
         // je vérifie que la partie 'admin' s'affiche
@@ -96,7 +96,7 @@ test(
     async () => {
         await pageCoach.goto(`http://localhost:${process.env.PORT}`);
 
-        await pageCoach.select('[name="name"]', "coach"); // je suis un coach
+        await pageCoach.select('[name="username"]', "coach"); // je suis un coach
         await pageCoach.click('[name="login"]'); // je me connecte
         await pageCoach.waitFor(3000);
         await pageCoach.click('[name="test"]'); // je rejoins le channel test
