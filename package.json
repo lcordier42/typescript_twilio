@@ -11,6 +11,7 @@
         "twilio-chat": "2.1.0"
     },
     "devDependencies": {
+        "@types/circular-json": "0.4.0",
         "@types/dotenv": "4.0.2",
         "@types/jest": "22.1.0",
         "@types/koa": "2.0.43",
@@ -20,6 +21,7 @@
         "@types/node": "9.3.0",
         "@types/puppeteer": "0.13.9",
         "casual": "1.5.19",
+        "circular-json": "0.5.1",
         "jest": "22.1.4",
         "nodemon": "1.14.11",
         "puppeteer": "0.13.0",
