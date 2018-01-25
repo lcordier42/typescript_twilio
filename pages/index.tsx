@@ -2,11 +2,16 @@ import * as React from "react";
 
 import { ChatApp } from "../components/ChatApp";
 
-export default () => (
+const IndexPage: React.SFC<{ url: { query: { role?: string } } }> = ({
+    url: { query: { role = "unknown", username = "anonymous" } },
+}) => (
     <div>
         <header>
             <h1>Test Chat</h1>
         </header>
-        <ChatApp />
+        <hr />
+        <ChatApp role={role} username={username} />
     </div>
 );
+
+export default IndexPage;

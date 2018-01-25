@@ -2,7 +2,7 @@ import * as React from "react";
 import Chat from "twilio-chat";
 
 export class ChatApp extends React.Component<
-    any,
+    { role: string; username: string },
     {
         channels: string[];
         inviteUser: string;
@@ -109,6 +109,10 @@ export class ChatApp extends React.Component<
     public render() {
         return (
             <main>
+                <header>
+                    <h2>Role: {this.props.role}</h2>
+                    <h3>Username: {this.props.username}</h3>
+                </header>
                 <style>{`
                     .admin {
                         position: relative;
@@ -327,7 +331,8 @@ export class ChatApp extends React.Component<
                 </div>
                 <div>
                     {this.loggedIn &&
-                    (this.username === "business" || this.username === "coach") ? (
+                    (this.username === "business" ||
+                        this.username === "coach") ? (
                         <div className="admin">
                             <form
                                 onSubmit={async (event) => {
