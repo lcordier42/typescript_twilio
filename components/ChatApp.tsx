@@ -33,11 +33,7 @@ export class ChatApp extends React.Component<
         };
     }
 
-    public componentDidMount() {
-        this.getToken();
-    }
-
-    public getToken = async () => {
+    public async componentDidMount() {
         this.loggedIn = false;
         if (this.props.username !== "anonymous") {
             this.loggedIn = true;
