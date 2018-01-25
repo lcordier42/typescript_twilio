@@ -9,11 +9,13 @@ dotenv.config();
 const config = {
     twilio: {
         accountSid: process.env.TWILIO_ACCOUNT_SID,
+        // admin role SID
         admin: "RL3d68dbcbf8ec4c018d36d578330309c0",
         apiKey: process.env.TWILIO_API_KEY,
         apiSecret: process.env.TWILIO_API_SECRET,
         authToken: "025c64434e4149aaf6dc15c40e7e662a",
         chatServiceSid: process.env.TWILIO_CHAT_SERVICE_SID,
+        // user role SID
         user: "RL0dad3491bb6349a5a53458a0fc97843c",
     },
 };
@@ -39,10 +41,11 @@ app.prepare().then(() => {
         await handle(ctx.req, ctx.res);
     });
 
-    router.post("/token/:identity", async (ctx: any) => {
-        const identity = ctx.params.identity;
+    router.post("/token/:username/:role", async (ctx: any) => {
+        const { role, username } = ctx.params;
         let permission = config.twilio.user;
-        if (identity === "business" || identity === "coach") {
+        if (role === "admin" || role === "employer") {
+            // config.twilio.admin is the SID of admin role
             permission = config.twilio.admin;
         }
         const token = new AccessToken(
@@ -53,22 +56,22 @@ app.prepare().then(() => {
         const chatGrant = new ChatGrant({
             serviceSid: config.twilio.chatServiceSid,
         });
-        token.identity = identity;
+        token.identity = username;
         token.addGrant(chatGrant);
         ctx.set("Content-Type", "application/json");
         ctx.body = JSON.stringify({
-            identity,
             token: token.toJwt(),
+            username,
         });
         try {
-            const response = await service.users(identity).update({
+            const response = await service.users(username).update({
                 roleSid: permission,
             });
         } catch (error) {
             if (error.code === 20404) {
                 await service.users.create({
-                    identity,
                     roleSid: permission,
+                    username,
                 });
             }
         }

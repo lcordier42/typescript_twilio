@@ -37,7 +37,7 @@ beforeAll(async () => {
     pageEmployer = await browserEmployer.newPage();
 });
 
-test("sample", async () => {
+test.skip("sample", async () => {
     await pageCandidate.goto(`http://localhost:${process.env.PORT}`);
 
     await pageCoach.goto(`http://localhost:${process.env.PORT}`);
@@ -47,7 +47,7 @@ test("sample", async () => {
     expect(true).toBe(true);
 });
 
-test(
+test.skip(
     "login candidate",
     async () => {
         await pageCandidate.goto(`http://localhost:${process.env.PORT}`);
@@ -63,7 +63,7 @@ test(
     10000,
 );
 
-test(
+test.skip(
     "login admin",
     async () => {
         await pageEmployer.goto(`http://localhost:${process.env.PORT}`);
@@ -77,7 +77,7 @@ test(
     10000,
 );
 
-test(
+test.skip(
     "logout",
     async () => {
         await pageEmployer.goto(`http://localhost:${process.env.PORT}`);
@@ -91,7 +91,7 @@ test(
     10000,
 );
 
-test(
+test.skip(
     "join channel",
     async () => {
         await pageCoach.goto(`http://localhost:${process.env.PORT}`);
@@ -107,7 +107,7 @@ test(
     10000,
 );
 
-test(
+test.skip(
     "send message",
     async () => {
         await pageCoach.goto(`http://localhost:${process.env.PORT}`);
@@ -123,7 +123,7 @@ test(
     10000,
 );
 
-test(
+test.skip(
     "create channel",
     async () => {
         await pageCoach.goto(`http://localhost:${process.env.PORT}`);
