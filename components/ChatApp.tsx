@@ -1,15 +1,13 @@
 import * as React from "react";
 import Chat from "twilio-chat";
 
-import { NameBox } from "./NameBox";
-
 export class ChatApp extends React.Component<
     any,
     {
         channels: string[];
         inviteUser: string;
         messages: string[];
-        name: string;
+        username: string;
         newChannel: string;
         newMessage: string;
         offlineMembers: string[];
@@ -17,22 +15,22 @@ export class ChatApp extends React.Component<
         token: string;
     }
 > {
-    public chatClient: any;
-    public channel: any;
-    public name: string;
-    public loggedIn: boolean;
+    private channel: any;
+    private chatClient: any;
+    private loggedIn: boolean;
+    private username: string;
     constructor(props: any) {
         super(props);
         this.state = {
             channels: [],
             inviteUser: "",
             messages: [],
-            name: "",
             newChannel: "",
             newMessage: "",
             offlineMembers: [],
             onlineMembers: [],
             token: "",
+            username: "",
         };
     }
 
@@ -42,10 +40,10 @@ export class ChatApp extends React.Component<
 
     public getToken = async () => {
         this.loggedIn = false;
-        this.name = sessionStorage.getItem("name") || "";
-        if (this.name !== "" && this.name !== null) {
+        this.username = sessionStorage.getItem("username") || "";
+        if (this.username !== "" && this.username !== null) {
             this.loggedIn = true;
-            const response = await fetch(`/token/${this.name}`, {
+            const response = await fetch(`/token/${this.username}`, {
                 method: "POST",
             });
             const data = await response.json();
@@ -196,14 +194,14 @@ export class ChatApp extends React.Component<
                                             channels: [],
                                             inviteUser: "",
                                             messages: [],
-                                            name: "",
                                             newChannel: "",
                                             newMessage: "",
                                             offlineMembers: [],
                                             onlineMembers: [],
                                             token: "",
+                                            username: "",
                                         });
-                                        sessionStorage.removeItem("name");
+                                        sessionStorage.removeItem("username");
                                         sessionStorage.removeItem(
                                             "loggedChannel",
                                         );
@@ -218,7 +216,7 @@ export class ChatApp extends React.Component<
                             {this.channel ? (
                                 <div className="chat">
                                     <h3>Messages</h3>
-                                    <p>Logged in as {this.name}</p>
+                                    <p>Logged in as {this.username}</p>
                                     <ul className="messages">
                                         {this.state.messages.map(
                                             (message: any) => (
@@ -286,29 +284,50 @@ export class ChatApp extends React.Component<
                         </div>
                     ) : (
                         <div>
-                            <NameBox
-                                name={this.state.name}
-                                onNameChanged={(event: any) => {
-                                    this.setState({ name: event.target.value });
-                                }}
-                                logIn={(event: any) => {
-                                    event.preventDefault();
-                                    if (this.state.name !== "") {
-                                        sessionStorage.setItem(
-                                            "name",
-                                            this.state.name,
-                                        );
-                                        this.loggedIn = true;
-                                        this.getToken();
-                                    }
-                                }}
-                            />
+                            <div className="NameBox">
+                                <form
+                                    onSubmit={(event) => {
+                                        event.preventDefault();
+                                        if (this.state.username !== "") {
+                                            sessionStorage.setItem(
+                                                "username",
+                                                this.state.username,
+                                            );
+                                            this.loggedIn = true;
+                                            this.getToken();
+                                        }
+                                    }}
+                                >
+                                    <select
+                                        name="username"
+                                        id="username"
+                                        onChange={(event) => {
+                                            this.setState({
+                                                username: event.target.value,
+                                            });
+                                        }}
+                                        value={this.state.username}
+                                    >
+                                        <option value="guest">guest</option>
+                                        <option value="business">
+                                            business
+                                        </option>
+                                        <option value="candidat">
+                                            candidat
+                                        </option>
+                                        <option value="coach">coach</option>
+                                    </select>
+                                    <button name="login" type="submit">
+                                        Log in
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     )}
                 </div>
                 <div>
                     {this.loggedIn &&
-                    (this.name === "business" || this.name === "coach") ? (
+                    (this.username === "business" || this.username === "coach") ? (
                         <div className="admin">
                             <form
                                 onSubmit={async (event) => {
@@ -320,7 +339,7 @@ export class ChatApp extends React.Component<
                                                     .newChannel,
                                             },
                                         );
-                                        channel.add(this.name);
+                                        channel.add(this.username);
                                         channel.add("coach");
                                     } catch (error) {
                                         if (error.code === 50307) {
