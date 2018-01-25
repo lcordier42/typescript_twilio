@@ -6,23 +6,24 @@ export class ChatApp extends React.Component<
     {
         channels: string[];
         inviteUser: string;
+        loggedIn: boolean;
         messages: string[];
-        username: string;
         newChannel: string;
         newMessage: string;
         offlineMembers: string[];
         onlineMembers: string[];
         token: string;
+        username: string;
     }
 > {
     private channel: any;
     private chatClient: any;
-    private loggedIn: boolean;
     constructor(props: any) {
         super(props);
         this.state = {
             channels: [],
             inviteUser: "",
+            loggedIn: false,
             messages: [],
             newChannel: "",
             newMessage: "",
@@ -34,9 +35,8 @@ export class ChatApp extends React.Component<
     }
 
     public async componentDidMount() {
-        this.loggedIn = false;
         if (this.props.username !== "anonymous") {
-            this.loggedIn = true;
+            this.setState({ loggedIn: true });
             const response = await fetch(
                 `/token/${this.props.username}/${this.props.role}`,
                 {
@@ -132,7 +132,7 @@ export class ChatApp extends React.Component<
                     }
                 `}</style>
                 <div>
-                    {this.loggedIn ? (
+                    {this.state.loggedIn ? (
                         <div>
                             <div className="channels">
                                 <label>Join a channel: </label>
@@ -206,7 +206,7 @@ export class ChatApp extends React.Component<
                                         sessionStorage.removeItem(
                                             "loggedChannel",
                                         );
-                                        this.loggedIn = false;
+                                        this.setState({ loggedIn: false });
                                         this.chatClient.shutdown();
                                         this.channel = null;
                                     }}
@@ -290,7 +290,7 @@ export class ChatApp extends React.Component<
                     )}
                 </div>
                 <div>
-                    {this.loggedIn &&
+                    {this.state.loggedIn &&
                     (this.props.role === "admin" ||
                         this.props.role === "employer") ? (
                         <div className="admin">
