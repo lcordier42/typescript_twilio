@@ -37,16 +37,17 @@ beforeAll(async () => {
     pageEmployer = await browserEmployer.newPage();
 });
 
-test("sample",
-// async () => {,
-//     await pageCandidate.goto(`http://localhost:${process.env.PORT}`);
+test(
+    "sample",
+    // async () => {,
+    //     await pageCandidate.goto(`http://localhost:${process.env.PORT}`);
 
-//     await pageCoach.goto(`http://localhost:${process.env.PORT}`);
+    //     await pageCoach.goto(`http://localhost:${process.env.PORT}`);
 
-//     await pageEmployer.goto(`http://localhost:${process.env.PORT}`);
+    //     await pageEmployer.goto(`http://localhost:${process.env.PORT}`);
 
-//     expect(true).toBe(true);
-// }
+    //     expect(true).toBe(true);
+    // }
 );
 
 test(
