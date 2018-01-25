@@ -1,9 +1,11 @@
+import * as CircularJSON from "circular-json";
 import * as dotenv from "dotenv";
 import * as Koa from "koa";
 import * as koaBodyParser from "koa-bodyparser";
 import * as KoaRouter from "koa-router";
 import * as appBuilder from "next";
-import Twilio = require("twilio");
+import * as Twilio from "twilio";
+import Chat from "twilio-chat";
 
 dotenv.config();
 const config = {
@@ -75,6 +77,12 @@ app.prepare().then(() => {
                 });
             }
         }
+    });
+
+    router.post("/server/:token", async (ctx: any) => {
+        Chat.create(ctx.params.token).then((Client: any) => {
+            ctx.body = CircularJSON.stringify;
+        });
     });
 
     koa.use(async (ctx: any, next: any) => {
