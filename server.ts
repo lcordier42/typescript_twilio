@@ -19,6 +19,7 @@ const config = {
         user: "RL0dad3491bb6349a5a53458a0fc97843c",
     },
 };
+const userDoesntExist = 20404;
 const AccessToken = Twilio.jwt.AccessToken;
 const ChatGrant = AccessToken.ChatGrant;
 const client = new Twilio.Twilio(
@@ -68,7 +69,7 @@ app.prepare().then(() => {
                 roleSid: permission,
             });
         } catch (error) {
-            if (error.code === 20404) {
+            if (error.code === userDoesntExist) {
                 await service.users.create({
                     identity: username,
                     roleSid: permission,
