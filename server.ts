@@ -70,8 +70,8 @@ app.prepare().then(() => {
         } catch (error) {
             if (error.code === 20404) {
                 await service.users.create({
+                    identity: username,
                     roleSid: permission,
-                    username,
                 });
             }
         }
