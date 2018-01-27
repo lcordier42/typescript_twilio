@@ -244,7 +244,7 @@ export class ChatApp extends React.Component<
                                 onSubmit={(event) => {
                                     event.preventDefault();
                                     if (this.channel) {
-                                        this.channel.add(this.state.inviteUser);
+                                        await this.channel.add(this.state.inviteUser);
                                     }
                                     this.setState({ inviteUser: "" });
                                 }}
