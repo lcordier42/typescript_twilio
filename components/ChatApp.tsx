@@ -3,7 +3,7 @@ import Chat from "twilio-chat";
 
 import admins from "../lib/admins";
 
-const channelAlreadyExist = 50307;
+const ERROR_CODE__CHANNEL_ALREADY_EXISTS = 50307; // https://www.twilio.com/docs/api/errors/50307
 
 export class ChatApp extends React.Component<
     {
@@ -24,7 +24,7 @@ export class ChatApp extends React.Component<
     }
 > {
     private channel: any;
-    private chatClient: Chat;
+    private chatClient: Chat | undefined;
 
     constructor() {
         // @ts-ignore
@@ -102,15 +102,17 @@ export class ChatApp extends React.Component<
                                                 this.messageAdded,
                                             );
                                         }
-
-                                        const channel = await this.chatClient.getChannelByUniqueName(
-                                            this.state.joinChannel,
-                                        );
-
-                                        this.channel = channel;
+                                        if (this.chatClient) {
+                                            const channel = await this.chatClient.getChannelByUniqueName(
+                                                this.state.joinChannel,
+                                            );
+                                            this.channel = channel;
+                                        }
 
                                         const messagePage = await this.channel.getMessages();
-                                        this.setState({ messages: messagePage.items });
+                                        this.setState({
+                                            messages: messagePage.items,
+                                        });
                                         this.channel.on(
                                             "messageAdded",
                                             this.messageAdded,
@@ -122,19 +124,23 @@ export class ChatApp extends React.Component<
                                         members.map(async (member: any) => {
                                             const user = await member.getUser();
                                             if (user.online === true) {
-                                                this.setState((prevState, props) => ({
-                                                    onlineMembers: [
-                                                        ...prevState.onlineMembers,
-                                                        member.identity,
-                                                    ],
-                                                }));
+                                                this.setState(
+                                                    (prevState, props) => ({
+                                                        onlineMembers: [
+                                                            ...prevState.onlineMembers,
+                                                            member.identity,
+                                                        ],
+                                                    }),
+                                                );
                                             } else {
-                                                this.setState((prevState, props) => ({
-                                                    offlineMembers: [
-                                                        ...prevState.offlineMembers,
-                                                        member.identity,
-                                                    ],
-                                                }));
+                                                this.setState(
+                                                    (prevState, props) => ({
+                                                        offlineMembers: [
+                                                            ...prevState.offlineMembers,
+                                                            member.identity,
+                                                        ],
+                                                    }),
+                                                );
                                             }
                                         });
                                     }}
@@ -274,35 +280,34 @@ export class ChatApp extends React.Component<
             // Si un candidate a été invité
             const previousChannel = this.channel || undefined;
             try {
-                // je tente de créer un canal
                 this.channel = await this.chatClient.createChannel({
                     uniqueName:
                         this.props.username + " - " + this.props.candidateName,
                 });
             } catch (error) {
                 // si le canal existe je récupère ses informations afin de le rejoindre
-                if (error.code === channelAlreadyExist) {
+                if (error.code === ERROR_CODE__CHANNEL_ALREADY_EXISTS) {
                     // mettre l'id de l'un et de l'autre avec virgule entre les deux
                     this.channel = await this.chatClient.getChannelByUniqueName(
                         this.props.username + " - " + this.props.candidateName,
                     );
+                } else {
+                    throw error;
                 }
             }
-            this.channel.add(this.props.username);
+            await this.channel.add(this.props.username);
             // Adding candidate to the channel
-            this.channel.add(this.props.candidateName);
+            await this.channel.add(this.props.candidateName);
             // Adding admins to the channel
-            admins.map((admin: string) => {
-                this.channel.add(admin);
-            });
+            await Promise.all(admins.map((a) => this.channel.add(a)));
             const messagePage = await this.channel.getMessages();
             this.setState({ messages: messagePage.items });
-            this.channel.on("messageAdded", this.messageAdded);
+            await this.channel.on("messageAdded", this.messageAdded);
 
             const members = await this.channel.getMembers(); // penser a utiliser un event
             this.setState({ onlineMembers: [] });
             this.setState({ offlineMembers: [] });
-            members.map(async (member: any) => {
+            for (const member of members) {
                 const user = await member.getUser();
                 if (user.online === true) {
                     this.setState((prevState, props) => ({
@@ -319,7 +324,7 @@ export class ChatApp extends React.Component<
                         ],
                     }));
                 }
-            });
+            })
         }
     }
 }
