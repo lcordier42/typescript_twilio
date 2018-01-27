@@ -30,9 +30,7 @@ async function getPage(browser: puppeteer.Browser): Promise<puppeteer.Page> {
 
 async function initCandidatePage(page: puppeteer.Page) {
     await page.goto(
-        `http://localhost:${
-            process.env.PORT
-        }?role=candidate&username=christopher`,
+        `http://localhost:${process.env.PORT}?user_id=101&role=candidate`,
     );
     // wait for available channels to be displayed
     await page.waitFor(".channels form li");
@@ -40,7 +38,7 @@ async function initCandidatePage(page: puppeteer.Page) {
 
 async function initCoachPage(page: puppeteer.Page) {
     await page.goto(
-        `http://localhost:${process.env.PORT}?role=admin&username=alex`,
+        `http://localhost:${process.env.PORT}?user_id=1&role=admin`,
     );
     // wait for available channels to be displayed
     await page.waitFor(".channels form li");
@@ -48,7 +46,7 @@ async function initCoachPage(page: puppeteer.Page) {
 
 async function initEmployerPage(page: puppeteer.Page) {
     await page.goto(
-        `http://localhost:${process.env.PORT}?role=employer&username=emilio`,
+        `http://localhost:${process.env.PORT}?user_id=11&role=employer`,
     );
     // wait for available channels to be displayed
     await page.waitFor(".channels form li");
