@@ -241,10 +241,12 @@ export class ChatApp extends React.Component<
                         this.props.role !== "employer") ? null : (
                         <div className="admin">
                             <form
-                                onSubmit={(event) => {
+                                onSubmit={async (event) => {
                                     event.preventDefault();
                                     if (this.channel) {
-                                        await this.channel.add(this.state.inviteUser);
+                                        await this.channel.add(
+                                            this.state.inviteUser,
+                                        );
                                     }
                                     this.setState({ inviteUser: "" });
                                 }}
@@ -324,7 +326,7 @@ export class ChatApp extends React.Component<
                         ],
                     }));
                 }
-            })
+            }
         }
     }
 }

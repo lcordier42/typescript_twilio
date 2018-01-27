@@ -19,7 +19,7 @@ const config = {
         user: "RL0dad3491bb6349a5a53458a0fc97843c",
     },
 };
-const ERROR_CODE__NOT_FOUND = 20404;
+const ERROR_CODE__NOT_FOUND = 20404; // https://www.twilio.com/docs/api/errors/20404
 const AccessToken = Twilio.jwt.AccessToken;
 const ChatGrant = AccessToken.ChatGrant;
 const client = new Twilio.Twilio(
