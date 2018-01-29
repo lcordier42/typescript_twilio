@@ -297,8 +297,7 @@ export class ChatApp extends React.Component<
 
             if (created === false) {
                 this.channel = await this.chatClient.createChannel({
-                    uniqueName:
-                        this.props.username + " - " + this.props.candidateName,
+                    uniqueName: channelName,
                 });
                 await this.channel.add(this.props.candidateName);
                 await this.channel.add(this.props.username);
@@ -307,10 +306,9 @@ export class ChatApp extends React.Component<
                 // si le canal existe je récupère ses informations afin de le rejoindre
                 // mettre l'id de l'un et de l'autre avec virgule entre les deux
                 this.channel = await this.chatClient.getChannelByUniqueName(
-                    this.props.username + " - " + this.props.candidateName,
+                    channelName,
                 );
             }
-
             const messagePage = await this.channel.getMessages();
             this.setState({ messages: messagePage.items });
             await this.channel.on("messageAdded", this.messageAdded);

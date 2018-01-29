@@ -7,7 +7,7 @@ export const CandidatesNav = (props: any) => (
     <div>
         {candidates.map((candidat: string, id) => (
             <li key={id}>
-                <button>
+                <button name={candidat}>
                     <Link
                         href={{
                             pathname: "/",
