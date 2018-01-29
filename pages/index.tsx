@@ -6,6 +6,7 @@ import { Nav } from "../components/Nav";
 import admins from "../lib/admins";
 import candidates from "../lib/candidates";
 import employers from "../lib/employers";
+import Error from "./_error";
 
 const IndexPage: React.SFC<{
     candidateName: string;
@@ -14,6 +15,9 @@ const IndexPage: React.SFC<{
     username: string;
     user_id: number;
 }> = ({ candidateName, role, token, username, user_id }) => {
+    if (!token) {
+        return <Error statusCode={404} />;
+    }
     return (
         <div>
             <Nav role={role} user_id={user_id} />
@@ -29,17 +33,10 @@ const IndexPage: React.SFC<{
     );
 };
 
-(IndexPage as any).getInitialProps = async ({
-    query: { candidate_id, role, user_id },
-}: {
-    query: {
-        candidate_id: number;
-        role: string;
-        user_id: number;
-    };
-}) => {
+(IndexPage as any).getInitialProps = async (ctx: any) => {
     /* Penser à gerer erreurs 404 et 500 quand query pas bonne */
 
+    const { query: { candidate_id, role, user_id } } = ctx;
     let username = "";
     if (role === "admin") {
         username = admins[user_id];
@@ -49,14 +46,17 @@ const IndexPage: React.SFC<{
         username = candidates[user_id];
     }
     const candidateName = candidates[candidate_id];
-    const { token } = await fetch(
-        `http://localhost:3000/token/${username}/${role}`,
-        {
-            method: "post",
-        },
-    ).then((response) => response.json());
-
-    return { candidateName, role, token, username, user_id };
+    if (username !== "" && username !== undefined) {
+        const { token } = await fetch(
+            `http://localhost:3000/token/${username}/${role}`,
+            {
+                method: "post",
+            },
+        ).then((response) => response.json());
+        return { candidateName, role, token, username, user_id };
+    } else {
+        return {};
+    }
 };
 
 export default IndexPage;

@@ -57,6 +57,7 @@ app.prepare().then(() => {
         const chatGrant = new ChatGrant({
             serviceSid: config.twilio.chatServiceSid,
         });
+
         token.identity = username;
         token.addGrant(chatGrant);
         ctx.set("Content-Type", "application/json");
