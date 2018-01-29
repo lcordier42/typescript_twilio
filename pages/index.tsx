@@ -9,7 +9,7 @@ import employers from "../lib/employers";
 import Error from "./_error";
 
 const IndexPage: React.SFC<{
-    candidateName: string;
+    candidateName: string | undefined;
     role: string;
     token: string;
     username: string;
@@ -17,6 +17,9 @@ const IndexPage: React.SFC<{
 }> = ({ candidateName, role, token, username, user_id }) => {
     if (!token) {
         return <Error statusCode={404} />;
+    }
+    if (role === "candidate" && candidateName !== undefined) {
+        candidateName = undefined;
     }
     return (
         <div>
@@ -34,8 +37,6 @@ const IndexPage: React.SFC<{
 };
 
 (IndexPage as any).getInitialProps = async (ctx: any) => {
-    /* Penser à gerer erreurs 404 et 500 quand query pas bonne */
-
     const { query: { candidate_id, role, user_id } } = ctx;
     let username = "";
     if (role === "admin") {
