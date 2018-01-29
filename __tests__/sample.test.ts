@@ -49,22 +49,6 @@ test("A wrong query redirect to error page", async () => {
     expect(await getText(candidatePage, ".error")).toBeDefined();
 });
 
-test.skip(
-    "join channel",
-    async () => {
-        await adminPage.goto(`http://localhost:${process.env.PORT}`);
-
-        await adminPage.select('[name="username"]', "coach"); // je suis un coach
-        await adminPage.click('[name="login"]'); // je me connecte
-        await adminPage.waitFor(3000);
-        await adminPage.click('[name="test"]'); // je rejoins le channel test
-        await adminPage.waitFor(1000);
-        // je vérifie que le chat s'affiche
-        expect(await getText(adminPage, ".chat")).toBeDefined();
-    },
-    10000,
-);
-
 afterAll(async () => {
     await candidateBrowser.close();
     await adminBrowser.close();
