@@ -279,29 +279,38 @@ export class ChatApp extends React.Component<
             }));
         });
         if (this.props.candidateName !== undefined) {
+            const channelName =
+                this.props.username + " - " + this.props.candidateName;
             // Si un candidate a été invité
             const previousChannel = this.channel || undefined;
-            try {
+            // false === channel non existant, true === channel déjà crée
+            let created = false;
+            // @ts-ignore
+            const paginator = await this.chatClient.getSubscribedChannels();
+            let i;
+            for (i = 0; i < paginator.items.length; i++) {
+                const channel = paginator.items[i];
+                if (channel.uniqueName === channelName) {
+                    created = true;
+                }
+            }
+
+            if (created === false) {
                 this.channel = await this.chatClient.createChannel({
                     uniqueName:
                         this.props.username + " - " + this.props.candidateName,
                 });
-            } catch (error) {
+                await this.channel.add(this.props.candidateName);
+                await this.channel.add(this.props.username);
+                await Promise.all(admins.map((a) => this.channel.add(a)));
+            } else {
                 // si le canal existe je récupère ses informations afin de le rejoindre
-                if (error.code === ERROR_CODE__CHANNEL_ALREADY_EXISTS) {
-                    // mettre l'id de l'un et de l'autre avec virgule entre les deux
-                    this.channel = await this.chatClient.getChannelByUniqueName(
-                        this.props.username + " - " + this.props.candidateName,
-                    );
-                } else {
-                    throw error;
-                }
+                // mettre l'id de l'un et de l'autre avec virgule entre les deux
+                this.channel = await this.chatClient.getChannelByUniqueName(
+                    this.props.username + " - " + this.props.candidateName,
+                );
             }
-            await this.channel.add(this.props.username);
-            // Adding candidate to the channel
-            await this.channel.add(this.props.candidateName);
-            // Adding admins to the channel
-            await Promise.all(admins.map((a) => this.channel.add(a)));
+
             const messagePage = await this.channel.getMessages();
             this.setState({ messages: messagePage.items });
             await this.channel.on("messageAdded", this.messageAdded);
