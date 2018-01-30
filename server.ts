@@ -1,5 +1,6 @@
 import * as dotenv from "dotenv";
 import * as Koa from "koa";
+import { Context } from "koa";
 import * as koaBodyParser from "koa-bodyparser";
 import * as KoaRouter from "koa-router";
 import * as appBuilder from "next";
@@ -38,11 +39,11 @@ app.prepare().then(() => {
     const koa = new Koa();
     koa.use(koaBodyParser());
 
-    router.get("*", async (ctx: any) => {
+    router.get("*", async (ctx: Context) => {
         await handle(ctx.req, ctx.res);
     });
 
-    router.post("/token/:username/:role", async (ctx: any) => {
+    router.post("/token/:username/:role", async (ctx: Context) => {
         const { role, username } = ctx.params;
         let permission = config.twilio.user;
         if (role === "admin" || role === "employer") {
@@ -81,7 +82,7 @@ app.prepare().then(() => {
         }
     });
 
-    koa.use(async (ctx: any, next: any) => {
+    koa.use(async (ctx: Context, next: any) => {
         ctx.res.statusCode = 200;
         await next();
     });

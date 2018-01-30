@@ -1,6 +1,7 @@
 import "isomorphic-fetch";
 import * as React from "react";
 
+import { Context } from "koa";
 import { ChatApp } from "../components/ChatApp";
 import { Nav } from "../components/Nav";
 import admins from "../lib/admins";
@@ -17,6 +18,7 @@ const IndexPage: React.SFC<{
 }> = ({ candidateName, role, token, username, user_id }) => {
     if (!token) {
         return <Error statusCode={404} />;
+        // throw new Error("Can't get token");
     }
     if (role === "candidate" && candidateName !== undefined) {
         candidateName = undefined;
@@ -36,7 +38,7 @@ const IndexPage: React.SFC<{
     );
 };
 
-(IndexPage as any).getInitialProps = async (ctx: any) => {
+(IndexPage as any).getInitialProps = async (ctx: Context) => {
     const { query: { candidate_id, role, user_id } } = ctx;
     let username = "";
     if (role === "admin") {

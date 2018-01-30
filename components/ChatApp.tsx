@@ -54,7 +54,7 @@ export class ChatApp extends React.Component<
         this.setState((prevState, props) => ({
             messages: [...prevState.messages, message],
         }));
-    };
+    }
 
     public render() {
         return (
@@ -285,23 +285,24 @@ export class ChatApp extends React.Component<
             const previousChannel = this.channel || undefined;
             // false === channel non existant, true === channel déjà crée
             let created = false;
-            // @ts-ignore
-            const paginator = await this.chatClient.getSubscribedChannels();
-            let i;
-            for (i = 0; i < paginator.items.length; i++) {
-                const channel = paginator.items[i];
-                if (channel.uniqueName === channelName) {
-                    created = true;
-                }
-            }
+            const paginator = await this.chatClient.getSubscribedChannels(
+                undefined,
+            );
+            created = paginator.items.some(
+                (value: any, index: number, array: any) => {
+                    return value.uniqueName === channelName;
+                },
+            );
 
             if (created === false) {
                 this.channel = await this.chatClient.createChannel({
                     uniqueName: channelName,
                 });
-                await this.channel.add(this.props.candidateName);
-                await this.channel.add(this.props.username);
-                await Promise.all(admins.map((a) => this.channel.add(a)));
+                await Promise.all([
+                    this.props.candidateName,
+                    this.props.username,
+                    ...admins.map((a) => this.channel.add(a)),
+                ]);
             } else {
                 // si le canal existe je récupère ses informations afin de le rejoindre
                 // mettre l'id de l'un et de l'autre avec virgule entre les deux

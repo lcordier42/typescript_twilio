@@ -1,20 +1,25 @@
+import * as http from "http"; // need it for type of res
 import * as React from "react";
 
-class Error extends React.Component<{ statusCode: number }> {
-    public static getInitialProps({ res, err }: { res: any; err: any }) {
-        const statusCode = res ? res.statusCode : err ? err.statusCode : null;
-        return { statusCode };
-    }
+const Error: React.SFC<{
+    statusCode: number;
+}> = ({ statusCode }) => (
+    <p className="error">
+        {statusCode
+            ? `An error ${statusCode} occurred on server`
+            : "An error occurred on client"}
+    </p>
+);
 
-    public render() {
-        return (
-            <p className="error">
-                {this.props.statusCode
-                    ? `An error ${this.props.statusCode} occurred on server`
-                    : "An error occurred on client"}
-            </p>
-        );
-    }
-}
+(Error as any).getInitialProps = async ({
+    res,
+    err,
+}: {
+    res: http.ServerResponse;
+    err: any;
+}) => {
+    const statusCode = res ? res.statusCode : err ? err.statusCode : null;
+    return { statusCode };
+};
 
 export default Error;

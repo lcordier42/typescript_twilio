@@ -166,7 +166,7 @@ test("An employer can invite a candidate on chat", async () => {
         }/candidate?user_id=10&role=employer`,
     );
     // invite a candidate
-    await employerPage.click('[name="claire"]');
+    await employerPage.click('button[name="claire"]');
     await employerPage.waitFor(".channels form li");
     // connecting candidate to chat page
     await candidatePage.goto(
