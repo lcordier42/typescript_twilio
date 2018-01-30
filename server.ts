@@ -39,11 +39,11 @@ app.prepare().then(() => {
     const koa = new Koa();
     koa.use(koaBodyParser());
 
-    router.get("*", async (ctx: Context) => {
+    router.get("*", async (ctx) => {
         await handle(ctx.req, ctx.res);
     });
 
-    router.post("/token/:username/:role", async (ctx: Context) => {
+    router.post("/token/:username/:role", async (ctx) => {
         const { role, username } = ctx.params;
         let permission = config.twilio.user;
         if (role === "admin" || role === "employer") {
@@ -82,7 +82,7 @@ app.prepare().then(() => {
         }
     });
 
-    koa.use(async (ctx: Context, next: any) => {
+    koa.use(async (ctx, next) => {
         ctx.res.statusCode = 200;
         await next();
     });
