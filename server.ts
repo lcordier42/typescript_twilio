@@ -1,6 +1,5 @@
 import * as dotenv from "dotenv";
 import * as Koa from "koa";
-import { Context } from "koa";
 import * as koaBodyParser from "koa-bodyparser";
 import * as KoaRouter from "koa-router";
 import * as appBuilder from "next";
