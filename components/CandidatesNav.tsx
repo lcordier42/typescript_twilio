@@ -1,11 +1,11 @@
 import Link from "next/link";
 import * as React from "react";
 
-import candidates from "../lib/candidates";
+import { candidates } from "../lib/candidates";
 
 export const CandidatesNav = (props: any) => (
     <div>
-        {candidates.map((candidat: string, id) => (
+        {candidates.map((candidat: string, id: number) => (
             <li key={id}>
                 <button type="button" name={candidat}>
                     <Link

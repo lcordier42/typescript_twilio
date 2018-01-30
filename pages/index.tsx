@@ -4,10 +4,10 @@ import * as React from "react";
 import { Context } from "koa";
 import { ChatApp } from "../components/ChatApp";
 import { Nav } from "../components/Nav";
-import admins from "../lib/admins";
-import candidates from "../lib/candidates";
-import employers from "../lib/employers";
-import Error from "./_error";
+import { admins } from "../lib/admins";
+import { candidates } from "../lib/candidates";
+import { employers } from "../lib/employers";
+import { Error } from "./_error";
 
 const IndexPage: React.SFC<{
     candidateName: string | undefined;

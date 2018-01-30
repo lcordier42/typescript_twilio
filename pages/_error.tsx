@@ -1,7 +1,7 @@
 import * as http from "http"; // need it for type of res
 import * as React from "react";
 
-const Error: React.SFC<{
+export const Error: React.SFC<{
     statusCode: number;
 }> = ({ statusCode }) => (
     <p className="error">
@@ -21,5 +21,3 @@ const Error: React.SFC<{
     const statusCode = res ? res.statusCode : err ? err.statusCode : null;
     return { statusCode };
 };
-
-export default Error;
