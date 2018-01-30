@@ -1,7 +1,7 @@
 import * as React from "react";
 import Chat from "twilio-chat";
 
-import admins from "../lib/admins";
+import { admins } from "../lib/admins";
 
 const ERROR_CODE__CHANNEL_ALREADY_EXISTS = 50307; // https://www.twilio.com/docs/api/errors/50307
 
@@ -54,7 +54,7 @@ export class ChatApp extends React.Component<
         this.setState((prevState, props) => ({
             messages: [...prevState.messages, message],
         }));
-    }
+    };
 
     public render() {
         return (

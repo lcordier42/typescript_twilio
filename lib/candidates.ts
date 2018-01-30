@@ -1,4 +1,3 @@
-// Revoir la création du tableau
 export const candidates = [
     { id: "100", username: "caroline" },
     { id: "101", username: "christopher" },
