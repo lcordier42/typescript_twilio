@@ -1,7 +1,7 @@
 import * as http from "http";
 import * as React from "react";
 
-const ErrorPage: React.SFC<{
+const Error: React.SFC<{
     statusCode: number;
 }> = ({ statusCode }) => (
     <p className="error">
@@ -22,4 +22,4 @@ const ErrorPage: React.SFC<{
     return { statusCode };
 };
 
-export default ErrorPage;
+export default Error;
