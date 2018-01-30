@@ -278,7 +278,7 @@ export class ChatApp extends React.Component<
                 channels: [...prevState.channels, channel.uniqueName],
             }));
         });
-        if (this.props.candidateName !== undefined) {
+        if (this.props.candidateName !== "") {
             const channelName =
                 this.props.username + " - " + this.props.candidateName;
             // Si un candidate a été invité

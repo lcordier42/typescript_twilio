@@ -1,7 +1,8 @@
 // Revoir la création du tableau
-export const candidates = new Array();
-candidates[100] = "caroline";
-candidates[101] = "christopher";
-candidates[102] = "christian";
-candidates[103] = "claire";
-candidates[104] = "carl";
+export const candidates = [
+    { id: "100", username: "caroline" },
+    { id: "101", username: "christopher" },
+    { id: "102", username: "christian" },
+    { id: "103", username: "claire" },
+    { id: "104", username: "carl" },
+];

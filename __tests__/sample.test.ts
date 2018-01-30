@@ -37,14 +37,16 @@ beforeAll(async () => {
     employerPage = await employerBrowser.newPage();
 });
 
-test("An empty query redirect to error page", async () => {
+test.skip("An empty query redirect to error page", async () => {
     await candidatePage.goto(`http://localhost:${process.env.PORT}`);
 
     expect(await getText(candidatePage, ".error")).toBeDefined();
 });
 
-test("A wrong query redirect to error page", async () => {
-    await candidatePage.goto(`http://localhost:${process.env.PORT}?user_id=123&role=admin`);
+test.skip("A wrong query redirect to error page", async () => {
+    await candidatePage.goto(
+        `http://localhost:${process.env.PORT}?user_id=123&role=admin`,
+    );
 
     expect(await getText(candidatePage, ".error")).toBeDefined();
 });

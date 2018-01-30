@@ -5,20 +5,20 @@ import { candidates } from "../lib/candidates";
 
 export const CandidatesNav = (props: any) => (
     <div>
-        {candidates.map((candidat: string, id: number) => (
-            <li key={id}>
-                <button type="button" name={candidat}>
+        {candidates.map((candidate) => (
+            <li key={candidate.id}>
+                <button type="button" name={candidate.username}>
                     <Link
                         href={{
                             pathname: "/",
                             query: {
-                                candidate_id: id,
+                                candidate_id: candidate.id,
                                 role: props.role,
                                 user_id: props.user_id,
                             },
                         }}
                     >
-                        <a>{candidat}</a>
+                        <a>{candidate.username}</a>
                     </Link>
                 </button>
             </li>

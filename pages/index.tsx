@@ -7,7 +7,6 @@ import { Nav } from "../components/Nav";
 import { admins } from "../lib/admins";
 import { candidates } from "../lib/candidates";
 import { employers } from "../lib/employers";
-import { Error } from "./_error";
 
 const IndexPage: React.SFC<{
     candidateName: string | undefined;
@@ -17,8 +16,7 @@ const IndexPage: React.SFC<{
     user_id: number;
 }> = ({ candidateName, role, token, username, user_id }) => {
     if (!token) {
-        return <Error statusCode={404} />;
-        // throw new Error("Can't get token");
+        throw new Error("Can't get token");
     }
     if (role === "candidate" && candidateName !== undefined) {
         candidateName = undefined;
@@ -39,26 +37,44 @@ const IndexPage: React.SFC<{
 };
 
 (IndexPage as any).getInitialProps = async (ctx: Context) => {
-    const { query: { candidate_id, role, user_id } } = ctx;
-    let username = "";
-    if (role === "admin") {
-        username = admins[user_id];
-    } else if (role === "employer") {
-        username = employers[user_id];
-    } else if (role === "candidate") {
-        username = candidates[user_id];
+    const {
+        query: { candidate_id, role, user_id },
+    }: { query: { candidate_id: string; role: string; user_id: string } } = ctx;
+    let user;
+    switch (role) {
+        case "admin":
+            user = admins.find((admin) => {
+                return admin.id === user_id;
+            });
+            break;
+        case "employer":
+            user = employers.find((employer) => {
+                return employer.id === user_id;
+            });
+            break;
+        case "candidate":
+            user = candidates.find((candidat) => {
+                return candidat.id === user_id;
+            });
+            break;
+        default:
+            throw new Error("Wrong role in query");
     }
-    const candidateName = candidates[candidate_id];
-    if (username !== "" && username !== undefined) {
+    if (user) {
+        const candidate = candidates.find((candidat) => {
+            return candidat.id === candidate_id;
+        });
+        const candidateName = candidate ? candidate.username : "";
+        const username = user.username;
         const { token } = await fetch(
-            `http://localhost:3000/token/${username}/${role}`,
+            `http://localhost:3000/token/${user.username}/${role}`,
             {
                 method: "post",
             },
         ).then((response) => response.json());
         return { candidateName, role, token, username, user_id };
     } else {
-        return {};
+        throw new Error("Wrong user id");
     }
 };
 
