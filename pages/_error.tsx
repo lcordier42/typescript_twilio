@@ -14,15 +14,12 @@ export default class Error extends React.Component<{ statusCode: number }> {
     }
 
     public render() {
-        if (this.props.statusCode) {
-            return (
-                <p>
-                    {this.props.statusCode
-                        ? `An error ${this.props.statusCode} occurred on server`
-                        : "An error occurred on client"}
-                </p>
-            );
-        }
-        return <p>An error occured</p>;
+        return (
+            <p className="error">
+                {this.props.statusCode
+                    ? `An error ${this.props.statusCode} occurred on server`
+                    : "An error occurred on client"}
+            </p>
+        );
     }
 }

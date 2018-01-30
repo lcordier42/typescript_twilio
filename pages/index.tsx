@@ -7,6 +7,7 @@ import { Nav } from "../components/Nav";
 import { admins } from "../lib/admins";
 import { candidates } from "../lib/candidates";
 import { employers } from "../lib/employers";
+import Error from "./_error";
 
 const IndexPage: React.SFC<{
     candidate: { id: string; username: string } | undefined;
@@ -16,7 +17,8 @@ const IndexPage: React.SFC<{
     user_id: number;
 }> = ({ candidate, role, token, user, user_id }) => {
     if (token === undefined) {
-        throw new Error("Can't get token");
+        // throw new Error("Can't get token");
+        return <Error statusCode={404} />;
     }
     if (role === "candidate" && candidate !== undefined) {
         candidate = undefined;
@@ -52,7 +54,8 @@ const IndexPage: React.SFC<{
             user = candidates.find((candidat) => candidat.id === user_id);
             break;
         default:
-            throw new Error("The role: " + role + " doesn't exist");
+            return <Error statusCode={404} />;
+        // throw new Error("The role: " + role + " doesn't exist");
     }
     if (user) {
         const candidate = candidates.find(
@@ -67,7 +70,8 @@ const IndexPage: React.SFC<{
 
         return { candidate, role, token, user, user_id };
     } else {
-        throw new Error("Wrong user id");
+        return <Error statusCode={404} />;
+        // throw new Error("Wrong user id");
     }
 };
 
