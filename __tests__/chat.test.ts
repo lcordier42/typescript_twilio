@@ -182,7 +182,7 @@ test("An employer can invite a candidate on chat", async () => {
 
     // receiving a message
     await candidatePage.click(
-        '.channels [type="submit"][name="elodie - claire"]',
+        '.channels [type="submit"][name="elodie,claire"]',
     );
     await candidatePage.waitFor(".chat");
     await candidatePage.waitFor(

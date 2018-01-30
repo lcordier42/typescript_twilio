@@ -10,17 +10,17 @@ import { employers } from "../lib/employers";
 import Error from "./_error";
 
 const IndexPage: React.SFC<{
-    candidateName: string | undefined;
+    candidate: { id: string; username: string } | undefined;
     role: string;
     token: string;
-    username: string;
+    user: { id: string; username: string };
     user_id: number;
-}> = ({ candidateName, role, token, username, user_id }) => {
-    if (!token) {
+}> = ({ candidate, role, token, user, user_id }) => {
+    if (token === undefined) {
         throw new Error("Can't get token");
     }
-    if (role === "candidate" && candidateName !== undefined) {
-        candidateName = undefined;
+    if (role === "candidate" && candidate !== undefined) {
+        candidate = undefined;
     }
     return (
         <div>
@@ -28,10 +28,10 @@ const IndexPage: React.SFC<{
             <hr />
             <h1>Index</h1>
             <ChatApp
-                candidateName={candidateName}
+                candidate={candidate}
                 role={role}
                 token={token}
-                username={username}
+                user={user}
             />
         </div>
     );
@@ -44,36 +44,29 @@ const IndexPage: React.SFC<{
     let user;
     switch (role) {
         case "admin":
-            user = admins.find((admin) => {
-                return admin.id === user_id;
-            });
+            user = admins.find((admin) => admin.id === user_id);
             break;
         case "employer":
-            user = employers.find((employer) => {
-                return employer.id === user_id;
-            });
+            user = employers.find((employer) => employer.id === user_id);
             break;
         case "candidate":
-            user = candidates.find((candidat) => {
-                return candidat.id === user_id;
-            });
+            user = candidates.find((candidat) => candidat.id === user_id);
             break;
         default:
-            throw new Error("Wrong role in query");
+            throw new Error("The role: " + role + " doesn't exist");
     }
     if (user) {
-        const candidate = candidates.find((candidat) => {
-            return candidat.id === candidate_id;
-        });
-        const candidateName = candidate ? candidate.username : "";
-        const username = user.username;
+        const candidate = candidates.find(
+            (candidat) => candidat.id === candidate_id,
+        );
         const { token } = await fetch(
             `http://localhost:3000/token/${user.username}/${role}`,
             {
                 method: "post",
             },
         ).then((response) => response.json());
-        return { candidateName, role, token, username, user_id };
+
+        return { candidate, role, token, user, user_id };
     } else {
         throw new Error("Wrong user id");
     }

@@ -1,7 +1,7 @@
 import * as http from "http";
 import * as React from "react";
 
-export default class Error extends React.Component {
+export default class Error extends React.Component<{ statusCode: number }> {
     private static getInitialProps({
         res,
         err,
@@ -13,7 +13,6 @@ export default class Error extends React.Component {
         return { statusCode };
     }
 
-    public props: any;
     public render() {
         if (this.props.statusCode) {
             return (

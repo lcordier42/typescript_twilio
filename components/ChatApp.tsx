@@ -7,10 +7,10 @@ const ERROR_CODE__CHANNEL_ALREADY_EXISTS = 50307; // https://www.twilio.com/docs
 
 export class ChatApp extends React.Component<
     {
-        candidateName: string | undefined;
+        candidate: { id: string; username: string } | undefined;
         role: string;
         token: string;
-        username: string;
+        user: { id: string; username: string };
     },
     {
         channels: string[];
@@ -20,7 +20,6 @@ export class ChatApp extends React.Component<
         newMessage: string;
         offlineMembers: string[];
         onlineMembers: string[];
-        username: string;
     }
 > {
     private channel: any;
@@ -37,7 +36,6 @@ export class ChatApp extends React.Component<
             newMessage: "",
             offlineMembers: [],
             onlineMembers: [],
-            username: "",
         };
     }
 
@@ -54,14 +52,14 @@ export class ChatApp extends React.Component<
         this.setState((prevState, props) => ({
             messages: [...prevState.messages, message],
         }));
-    };
+    }
 
     public render() {
         return (
             <main>
                 <header>
                     <h2>Role: {this.props.role}</h2>
-                    <h3>Username: {this.props.username}</h3>
+                    <h3>Username: {this.props.user.username}</h3>
                 </header>
                 <style>{`
                     .admin {
@@ -167,7 +165,9 @@ export class ChatApp extends React.Component<
                             {this.channel ? (
                                 <div className="chat">
                                     <h3>Messages</h3>
-                                    <p>Logged in as {this.props.username}</p>
+                                    <p>
+                                        Logged in as {this.props.user.username}
+                                    </p>
                                     <ul className="messages">
                                         {this.state.messages.map(
                                             (message: any) => (
@@ -278,9 +278,11 @@ export class ChatApp extends React.Component<
                 channels: [...prevState.channels, channel.uniqueName],
             }));
         });
-        if (this.props.candidateName !== "") {
-            const channelName =
-                this.props.username + " - " + this.props.candidateName;
+        if (this.props.candidate !== undefined) {
+            const channelName = [
+                this.props.user.username,
+                this.props.candidate.username,
+            ].toString();
             // Si un candidate a été invité
             const previousChannel = this.channel || undefined;
             // false === channel non existant, true === channel déjà crée
@@ -288,20 +290,17 @@ export class ChatApp extends React.Component<
             const paginator = await this.chatClient.getSubscribedChannels(
                 undefined,
             );
-            created = paginator.items.some(
-                (value: any, index: number, array: any) => {
-                    return value.uniqueName === channelName;
-                },
-            );
-
+            created = paginator.items.some((channel: any) => {
+                return channel.uniqueName === channelName;
+            });
             if (created === false) {
                 this.channel = await this.chatClient.createChannel({
                     uniqueName: channelName,
                 });
                 await Promise.all([
-                    this.props.candidateName,
-                    this.props.username,
-                    ...admins.map((a) => this.channel.add(a)),
+                    this.channel.add(this.props.candidate.username),
+                    this.channel.add(this.props.user.username),
+                    admins.map((a) => this.channel.add(a.username)),
                 ]);
             } else {
                 // si le canal existe je récupère ses informations afin de le rejoindre
