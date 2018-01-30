@@ -1,25 +1,29 @@
 import * as http from "http";
 import * as React from "react";
 
-const Error: React.SFC<{
-    statusCode: number;
-}> = ({ statusCode }) => (
-    <p className="error">
-        {statusCode
-            ? `An error ${statusCode} occurred on server`
-            : "An error occurred on client"}
-    </p>
-);
+export default class Error extends React.Component {
+    private static getInitialProps({
+        res,
+        err,
+    }: {
+        res: http.ServerResponse;
+        err: any;
+    }) {
+        const statusCode = res ? res.statusCode : err ? err.statusCode : null;
+        return { statusCode };
+    }
 
-(Error as any).getInitialProps = async ({
-    res,
-    err,
-}: {
-    res: http.ServerResponse;
-    err: any;
-}) => {
-    const statusCode = res ? res.statusCode : err ? err.statusCode : null;
-    return { statusCode };
-};
-
-export default Error;
+    public props: any;
+    public render() {
+        if (this.props.statusCode) {
+            return (
+                <p>
+                    {this.props.statusCode
+                        ? `An error ${this.props.statusCode} occurred on server`
+                        : "An error occurred on client"}
+                </p>
+            );
+        }
+        return <p>An error occured</p>;
+    }
+}
