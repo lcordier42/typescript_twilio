@@ -38,11 +38,11 @@ app.prepare().then(() => {
     const koa = new Koa();
     koa.use(koaBodyParser());
 
-    router.get("*", async (ctx: any) => {
+    router.get("*", async (ctx) => {
         await handle(ctx.req, ctx.res);
     });
 
-    router.post("/token/:username/:role", async (ctx: any) => {
+    router.post("/token/:username/:role", async (ctx) => {
         const { role, username } = ctx.params;
         let permission = config.twilio.user;
         if (role === "admin" || role === "employer") {
@@ -57,6 +57,7 @@ app.prepare().then(() => {
         const chatGrant = new ChatGrant({
             serviceSid: config.twilio.chatServiceSid,
         });
+
         token.identity = username;
         token.addGrant(chatGrant);
         ctx.set("Content-Type", "application/json");
@@ -80,7 +81,7 @@ app.prepare().then(() => {
         }
     });
 
-    koa.use(async (ctx: any, next: any) => {
+    koa.use(async (ctx, next) => {
         ctx.res.statusCode = 200;
         await next();
     });

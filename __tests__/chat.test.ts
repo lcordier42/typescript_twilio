@@ -74,8 +74,6 @@ beforeAll(async () => {
     await initCandidatePage(candidatePage);
 });
 
-test.skip("An employer can create a new chat");
-
 test("An employer can continue an existing chat", async () => {
     // connecting
     await employerPage.click('.channels [type="submit"][name="test"]');
@@ -154,6 +152,48 @@ test("An admin can continue an existing chat", async () => {
             }
 
             return e.innerHTML === `<b>alex:</b> ${m}`;
+        },
+        undefined,
+        message,
+    );
+});
+
+test("An employer can invite a candidate on chat", async () => {
+    // connecting employer to candidates page
+    await employerPage.goto(
+        `http://localhost:${
+            process.env.PORT
+        }/candidate?user_id=10&role=employer`,
+    );
+    // invite a candidate
+    await employerPage.click('button[name="claire"]');
+    await employerPage.waitFor(".channels form li");
+    // connecting candidate to chat page
+    await candidatePage.goto(
+        `http://localhost:${process.env.PORT}?user_id=103&role=candidate`,
+    );
+    // wait for available channels to be displayed
+    await candidatePage.waitFor(".channels form li");
+
+    // sending a message
+    const message = casual.sentence;
+    await employerPage.type('input[name="message"]', message);
+    await employerPage.click('button[name="send"]');
+
+    // receiving a message
+    await candidatePage.click(
+        '.channels [type="submit"][name="elodie,claire"]',
+    );
+    await candidatePage.waitFor(".chat");
+    await candidatePage.waitFor(
+        (m: string) => {
+            const e = document.querySelector("ul.messages li:last-of-type");
+
+            if (e === null) {
+                return false;
+            }
+
+            return e.innerHTML === `<b>elodie:</b> ${m}`;
         },
         undefined,
         message,
