@@ -1,21 +1,29 @@
 import "isomorphic-fetch";
 import * as React from "react";
 
-import { Context } from "koa";
 import { ChatApp } from "../components/ChatApp";
 import { Nav } from "../components/Nav";
 import { admins } from "../lib/admins";
 import { candidates } from "../lib/candidates";
 import { employers } from "../lib/employers";
+import { IContext } from "../next";
 import Error from "./_error";
 
-const IndexPage: React.SFC<{
+interface IProps {
     candidate: { id: string; username: string } | undefined;
     role: string;
     token: string;
     user: { id: string; username: string };
     user_id: number;
-}> = ({ candidate, role, token, user, user_id }) => {
+}
+
+const IndexPage: React.SFC<IProps> = ({
+    candidate,
+    role,
+    token,
+    user,
+    user_id,
+}) => {
     if (token === undefined) {
         // throw new Error("Can't get token");
         return <Error statusCode={404} />;
@@ -38,10 +46,9 @@ const IndexPage: React.SFC<{
     );
 };
 
-(IndexPage as any).getInitialProps = async (ctx: Context) => {
-    const {
-        query: { candidate_id, role, user_id },
-    }: { query: { candidate_id: string; role: string; user_id: string } } = ctx;
+(IndexPage as any).getInitialProps = async ({
+    query: { candidate_id, role, user_id },
+}: IContext): Promise<IProps> => {
     let user;
     switch (role) {
         case "admin":

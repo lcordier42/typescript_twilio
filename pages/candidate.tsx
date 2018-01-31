@@ -3,28 +3,29 @@ import * as React from "react";
 
 import { CandidatesNav } from "../components/CandidatesNav";
 import { Nav } from "../components/Nav";
+import { IContext } from "../next";
 
-const Candidate: React.SFC<{
+interface IProps {
     role: string;
     user_id: number;
-}> = ({ role, user_id }) => {
+}
+
+const CandidatePage: React.SFC<IProps> = ({ role, user_id }) => {
     return (
         <div>
-            <Nav user_id={user_id} role={role}/>
+            <Nav user_id={user_id} role={role} />
             <hr />
             <h1>Candidate</h1>
             <br />
-            <CandidatesNav user_id={user_id} role={role}/>
+            <CandidatesNav user_id={user_id} role={role} />
         </div>
     );
 };
 
-(Candidate as any).getInitialProps = async ({
+(CandidatePage as any).getInitialProps = async ({
     query: { role, user_id },
-}: {
-    query: { role: string; user_id: number };
-}) => {
+}: IContext): Promise<IProps> => {
     return { role, user_id };
 };
 
-export default Candidate;
+export default CandidatePage;
