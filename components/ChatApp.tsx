@@ -51,10 +51,9 @@ export class ChatApp extends React.Component<
     }
 
     public messageAdded = async (message: string) => {
-        this.setState((prevState, props) => ({
+        this.setState((prevState) => ({
             messages: [...prevState.messages, message],
         }));
-        const index = await this.channel.setAllMessagesConsumed();
     }
 
     public render() {
@@ -125,23 +124,19 @@ export class ChatApp extends React.Component<
                                         members.map(async (member: any) => {
                                             const user = await member.getUser();
                                             if (user.online === true) {
-                                                this.setState(
-                                                    (prevState, props) => ({
-                                                        onlineMembers: [
-                                                            ...prevState.onlineMembers,
-                                                            member.identity,
-                                                        ],
-                                                    }),
-                                                );
+                                                this.setState((prevState) => ({
+                                                    onlineMembers: [
+                                                        ...prevState.onlineMembers,
+                                                        member.identity,
+                                                    ],
+                                                }));
                                             } else {
-                                                this.setState(
-                                                    (prevState, props) => ({
-                                                        offlineMembers: [
-                                                            ...prevState.offlineMembers,
-                                                            member.identity,
-                                                        ],
-                                                    }),
-                                                );
+                                                this.setState((prevState) => ({
+                                                    offlineMembers: [
+                                                        ...prevState.offlineMembers,
+                                                        member.identity,
+                                                    ],
+                                                }));
                                             }
                                         });
                                     }}
@@ -152,8 +147,8 @@ export class ChatApp extends React.Component<
                                                 b.channel.dateCreated -
                                                 a.channel.dateCreated,
                                         )
-                                        .map((channel, i) => (
-                                            <li key={i}>
+                                        .map((channel) => (
+                                            <li key={channel.channel.sid}>
                                                 <button
                                                     type="submit"
                                                     name={
@@ -164,13 +159,9 @@ export class ChatApp extends React.Component<
                                                         this.setState({
                                                             joinChannel:
                                                                 event.target
-                                                                    .value,
+                                                                    .name,
                                                         });
                                                     }}
-                                                    value={
-                                                        channel.channel
-                                                            .uniqueName
-                                                    }
                                                 >
                                                     {channel.channel.uniqueName}
                                                 </button>
@@ -301,7 +292,7 @@ export class ChatApp extends React.Component<
             const messages = await channel.getMessages();
             const index = messages.items.length;
 
-            this.setState((prevState, props) => ({
+            this.setState((prevState) => ({
                 channels: [
                     ...prevState.channels,
                     {
@@ -313,6 +304,7 @@ export class ChatApp extends React.Component<
                     },
                 ],
             }));
+            // used as a backup of channels
             this.setState({ channelState: this.state.channels });
         });
         this.chatClient.on("messageAdded", () => {
@@ -321,7 +313,7 @@ export class ChatApp extends React.Component<
                 const messages = await channel.channel.getMessages();
                 const index = messages.items.length;
 
-                this.setState((prevState, props) => ({
+                this.setState((prevState) => ({
                     channels: [
                         ...prevState.channels,
                         {
@@ -340,8 +332,6 @@ export class ChatApp extends React.Component<
                 this.props.user.username,
                 this.props.candidate.username,
             ].toString();
-            // Si un candidate a été invité
-            const previousChannel = this.channel || undefined;
             // false === channel non existant, true === channel déjà crée
             let created = false;
             const paginator = await this.chatClient.getSubscribedChannels(
@@ -376,14 +366,14 @@ export class ChatApp extends React.Component<
             for (const member of members) {
                 const user = await member.getUser();
                 if (user.online === true) {
-                    this.setState((prevState, props) => ({
+                    this.setState((prevState) => ({
                         onlineMembers: [
                             ...prevState.onlineMembers,
                             member.identity,
                         ],
                     }));
                 } else {
-                    this.setState((prevState, props) => ({
+                    this.setState((prevState) => ({
                         offlineMembers: [
                             ...prevState.offlineMembers,
                             member.identity,
