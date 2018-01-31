@@ -10,14 +10,7 @@ export interface IContext {
     jsonPageRes?: Response;
     pathname: string;
     query: {
-        [key: string]:
-            | boolean
-            | boolean[]
-            | number
-            | number[]
-            | string
-            | string[]
-            | undefined;
+        [key: string]: string | undefined;
     };
     req?: http.IncomingMessage;
     res?: http.ServerResponse;

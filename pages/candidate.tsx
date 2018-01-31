@@ -6,8 +6,8 @@ import { Nav } from "../components/Nav";
 import { IContext } from "../next";
 
 interface IProps {
-    role: string;
-    user_id: number;
+    role: string | undefined;
+    user_id: string | undefined;
 }
 
 const CandidatePage: React.SFC<IProps> = ({ role, user_id }) => {

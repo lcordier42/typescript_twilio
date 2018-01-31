@@ -3,7 +3,7 @@ import * as React from "react";
 import { IContext } from "../next";
 
 interface IProps {
-    statusCode: number;
+    statusCode: number | null;
 }
 
 const ErrorPage: React.SFC<IProps> = ({ statusCode }) => (

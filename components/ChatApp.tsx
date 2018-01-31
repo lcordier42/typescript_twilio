@@ -8,7 +8,7 @@ const ERROR_CODE__CHANNEL_ALREADY_EXISTS = 50307; // https://www.twilio.com/docs
 export class ChatApp extends React.Component<
     {
         candidate: { id: string; username: string } | undefined;
-        role: string;
+        role: string | undefined;
         token: string;
         user: { id: string; username: string };
     },

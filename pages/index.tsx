@@ -11,10 +11,10 @@ import Error from "./_error";
 
 interface IProps {
     candidate: { id: string; username: string } | undefined;
-    role: string;
-    token: string;
-    user: { id: string; username: string };
-    user_id: number;
+    role: string | undefined;
+    token: string | undefined;
+    user: { id: string; username: string } | undefined;
+    user_id: string | undefined;
 }
 
 const IndexPage: React.SFC<IProps> = ({
@@ -24,7 +24,7 @@ const IndexPage: React.SFC<IProps> = ({
     user,
     user_id,
 }) => {
-    if (token === undefined) {
+    if (token === undefined || user === undefined) {
         // throw new Error("Can't get token");
         return <Error statusCode={404} />;
     }
@@ -61,7 +61,7 @@ const IndexPage: React.SFC<IProps> = ({
             user = candidates.find((candidat) => candidat.id === user_id);
             break;
         default:
-            return <Error statusCode={404} />;
+            break;
         // throw new Error("The role: " + role + " doesn't exist");
     }
     if (user) {
@@ -77,7 +77,7 @@ const IndexPage: React.SFC<IProps> = ({
 
         return { candidate, role, token, user, user_id };
     } else {
-        return <Error statusCode={404} />;
+        return { candidate: undefined, role, token: undefined, user, user_id };
         // throw new Error("Wrong user id");
     }
 };
