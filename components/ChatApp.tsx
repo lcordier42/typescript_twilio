@@ -13,7 +13,8 @@ export class ChatApp extends React.Component<
         user: { id: string; username: string };
     },
     {
-        channels: string[];
+        channelState: any[];
+        channels: any[];
         inviteUser: string;
         joinChannel: string;
         messages: string[];
@@ -29,6 +30,7 @@ export class ChatApp extends React.Component<
         // @ts-ignore
         super(...arguments);
         this.state = {
+            channelState: [],
             channels: [],
             inviteUser: "",
             joinChannel: "",
@@ -48,10 +50,11 @@ export class ChatApp extends React.Component<
         }
     }
 
-    public messageAdded = (message: string) => {
+    public messageAdded = async (message: string) => {
         this.setState((prevState, props) => ({
             messages: [...prevState.messages, message],
         }));
+        const index = await this.channel.setAllMessagesConsumed();
     }
 
     public render() {
@@ -143,23 +146,43 @@ export class ChatApp extends React.Component<
                                         });
                                     }}
                                 >
-                                    {this.state.channels.map((channel, i) => (
-                                        <li key={i}>
-                                            <button
-                                                type="submit"
-                                                name={channel}
-                                                onClick={(event: any) => {
-                                                    this.setState({
-                                                        joinChannel:
-                                                            event.target.value,
-                                                    });
-                                                }}
-                                                value={channel}
-                                            >
-                                                {channel}
-                                            </button>
-                                        </li>
-                                    ))}
+                                    {this.state.channels
+                                        .sort(
+                                            (a, b) =>
+                                                b.channel.dateCreated -
+                                                a.channel.dateCreated,
+                                        )
+                                        .map((channel, i) => (
+                                            <li key={i}>
+                                                <button
+                                                    type="submit"
+                                                    name={
+                                                        channel.channel
+                                                            .uniqueName
+                                                    }
+                                                    onClick={(event: any) => {
+                                                        this.setState({
+                                                            joinChannel:
+                                                                event.target
+                                                                    .value,
+                                                        });
+                                                    }}
+                                                    value={
+                                                        channel.channel
+                                                            .uniqueName
+                                                    }
+                                                >
+                                                    {channel.channel.uniqueName}
+                                                </button>
+                                                <p>
+                                                    last message:
+                                                    {channel.messages !==
+                                                    undefined
+                                                        ? channel.messages.body
+                                                        : "empty conversation"}
+                                                </p>
+                                            </li>
+                                        ))}
                                 </form>
                             </div>
                             {this.channel ? (
@@ -273,10 +296,44 @@ export class ChatApp extends React.Component<
 
     public async componentDidMount() {
         this.chatClient = await Chat.create(this.props.token);
-        this.chatClient.on("channelAdded", (channel: any) => {
+
+        this.chatClient.on("channelAdded", async (channel) => {
+            const messages = await channel.getMessages();
+            const index = messages.items.length;
+
             this.setState((prevState, props) => ({
-                channels: [...prevState.channels, channel.uniqueName],
+                channels: [
+                    ...prevState.channels,
+                    {
+                        channel,
+                        messages:
+                            messages.items[index - 1] !== undefined
+                                ? messages.items[index - 1]
+                                : undefined,
+                    },
+                ],
             }));
+            this.setState({ channelState: this.state.channels });
+        });
+        this.chatClient.on("messageAdded", () => {
+            this.setState({ channels: [] });
+            this.state.channelState.map(async (channel) => {
+                const messages = await channel.channel.getMessages();
+                const index = messages.items.length;
+
+                this.setState((prevState, props) => ({
+                    channels: [
+                        ...prevState.channels,
+                        {
+                            channel: channel.channel,
+                            messages:
+                                messages.items[index - 1] !== undefined
+                                    ? messages.items[index - 1]
+                                    : undefined,
+                        },
+                    ],
+                }));
+            });
         });
         if (this.props.candidate !== undefined) {
             const channelName = [
