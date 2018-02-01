@@ -25,6 +25,8 @@ const CandidatePage: React.SFC<IProps> = ({ role, user_id }) => {
 (CandidatePage as any).getInitialProps = async ({
     query: { role, user_id },
 }: IContext): Promise<IProps> => {
+    role = role as string | undefined;
+    user_id = user_id as string | undefined;
     return { role, user_id };
 };
 

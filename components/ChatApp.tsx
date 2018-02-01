@@ -49,10 +49,10 @@ export class ChatApp extends React.Component<
     }
 
     public messageAdded = (message: string) => {
-        this.setState((prevState, props) => ({
+        this.setState((prevState) => ({
             messages: [...prevState.messages, message],
         }));
-    }
+    };
 
     public render() {
         return (
@@ -122,23 +122,19 @@ export class ChatApp extends React.Component<
                                         members.map(async (member: any) => {
                                             const user = await member.getUser();
                                             if (user.online === true) {
-                                                this.setState(
-                                                    (prevState, props) => ({
-                                                        onlineMembers: [
-                                                            ...prevState.onlineMembers,
-                                                            member.identity,
-                                                        ],
-                                                    }),
-                                                );
+                                                this.setState((prevState) => ({
+                                                    onlineMembers: [
+                                                        ...prevState.onlineMembers,
+                                                        member.identity,
+                                                    ],
+                                                }));
                                             } else {
-                                                this.setState(
-                                                    (prevState, props) => ({
-                                                        offlineMembers: [
-                                                            ...prevState.offlineMembers,
-                                                            member.identity,
-                                                        ],
-                                                    }),
-                                                );
+                                                this.setState((prevState) => ({
+                                                    offlineMembers: [
+                                                        ...prevState.offlineMembers,
+                                                        member.identity,
+                                                    ],
+                                                }));
                                             }
                                         });
                                     }}
@@ -274,7 +270,7 @@ export class ChatApp extends React.Component<
     public async componentDidMount() {
         this.chatClient = await Chat.create(this.props.token);
         this.chatClient.on("channelAdded", (channel: any) => {
-            this.setState((prevState, props) => ({
+            this.setState((prevState) => ({
                 channels: [...prevState.channels, channel.uniqueName],
             }));
         });
@@ -319,14 +315,14 @@ export class ChatApp extends React.Component<
             for (const member of members) {
                 const user = await member.getUser();
                 if (user.online === true) {
-                    this.setState((prevState, props) => ({
+                    this.setState((prevState) => ({
                         onlineMembers: [
                             ...prevState.onlineMembers,
                             member.identity,
                         ],
                     }));
                 } else {
-                    this.setState((prevState, props) => ({
+                    this.setState((prevState) => ({
                         offlineMembers: [
                             ...prevState.offlineMembers,
                             member.identity,
