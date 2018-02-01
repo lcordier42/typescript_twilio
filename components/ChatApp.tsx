@@ -13,7 +13,6 @@ export class ChatApp extends React.Component<
         user: { id: string; username: string };
     },
     {
-        channelState: any[];
         channels: any[];
         inviteUser: string;
         joinChannel: string;
@@ -30,7 +29,6 @@ export class ChatApp extends React.Component<
         // @ts-ignore
         super(...arguments);
         this.state = {
-            channelState: [],
             channels: [],
             inviteUser: "",
             joinChannel: "",
@@ -50,10 +48,42 @@ export class ChatApp extends React.Component<
         }
     }
 
-    public messageAdded = async (message: string) => {
+    public messageAdded = async (message: any) => {
         this.setState((prevState) => ({
             messages: [...prevState.messages, message],
         }));
+        if (message.index > message.channel.lastConsumedMessageIndex) {
+            // % 30 is here because message index can be > 30 and when i call the method "getMessages"
+            // I only get 30 (it's configurable)
+            message.channel.updateLastConsumedMessageIndex(message.index % 30);
+        }
+    }
+
+    // factored for better lisibility for now, but I'll duplicate later, called 2 times for now
+    public updateChannels = async () => {
+        if (this.chatClient) {
+            this.setState({ channels: [] });
+            const channels = await this.chatClient.getSubscribedChannels(
+                undefined,
+            );
+            channels.items.map(async (channel) => {
+                const messages = await channel.getMessages();
+                const index = messages.items.length;
+
+                this.setState((prevState) => ({
+                    channels: [
+                        ...prevState.channels,
+                        {
+                            channel,
+                            messages:
+                                messages.items[index - 1] !== undefined
+                                    ? messages.items[index - 1]
+                                    : undefined,
+                        },
+                    ],
+                }));
+            });
+        }
     }
 
     public render() {
@@ -108,16 +138,36 @@ export class ChatApp extends React.Component<
                                             );
                                             this.channel = channel;
                                         }
-
                                         const messagePage = await this.channel.getMessages();
                                         this.setState({
                                             messages: messagePage.items,
                                         });
+                                        // each time I join a channel, i set the lastConsumedMessage at the index
+                                        // of last message in the channel
+                                        if (
+                                            messagePage.items[
+                                                messagePage.items.length - 1
+                                            ] !== undefined &&
+                                            messagePage.items[
+                                                messagePage.items.length - 1
+                                            ].index >
+                                                messagePage.items[
+                                                    messagePage.items.length - 1
+                                                ].channel
+                                                    .lastConsumedMessageIndex
+                                        ) {
+                                            messagePage.items[
+                                                messagePage.items.length - 1
+                                            ].channel.updateLastConsumedMessageIndex(
+                                                messagePage.items[
+                                                    messagePage.items.length - 1
+                                                ].index % 30,
+                                            );
+                                        }
                                         this.channel.on(
                                             "messageAdded",
                                             this.messageAdded,
                                         );
-
                                         const members = await this.channel.getMembers();
                                         this.setState({ onlineMembers: [] });
                                         this.setState({ offlineMembers: [] });
@@ -166,6 +216,14 @@ export class ChatApp extends React.Component<
                                                     {channel.channel.uniqueName}
                                                 </button>
                                                 <p>
+                                                    {/*Here I add "new" or nothing before the last message send*/}
+                                                    {channel.messages &&
+                                                    channel.messages.index %
+                                                        30 >
+                                                        channel.messages.channel
+                                                            .lastConsumedMessageIndex ? (
+                                                        <b>new </b>
+                                                    ) : null}
                                                     last message:
                                                     {channel.messages !==
                                                     undefined
@@ -288,45 +346,38 @@ export class ChatApp extends React.Component<
     public async componentDidMount() {
         this.chatClient = await Chat.create(this.props.token);
 
-        this.chatClient.on("channelAdded", async (channel) => {
-            const messages = await channel.getMessages();
-            const index = messages.items.length;
+        this.updateChannels();
+        // I have a problem here when I create a new channel, rendering is done before
+        // this.state.channels is filled, so i've got an error, i'll correct it asap
+        this.chatClient.on("channelAdded", async (newChannel) => {
+            if (this.chatClient !== undefined) {
+                const channels = await this.chatClient.getSubscribedChannels(
+                    undefined,
+                );
+                this.state.channels.map(async (channel) => {
+                    if (newChannel.uniqueName !== channel.uniqueName) {
+                        const messages = await newChannel.getMessages();
+                        const index = messages.items.length;
 
-            this.setState((prevState) => ({
-                channels: [
-                    ...prevState.channels,
-                    {
-                        channel,
-                        messages:
-                            messages.items[index - 1] !== undefined
-                                ? messages.items[index - 1]
-                                : undefined,
-                    },
-                ],
-            }));
-            // used as a backup of channels
-            this.setState({ channelState: this.state.channels });
+                        this.setState((prevState) => ({
+                            channels: [
+                                ...prevState.channels,
+                                {
+                                    messages:
+                                        messages.items[index - 1] !== undefined
+                                            ? messages.items[index - 1]
+                                            : undefined,
+                                    newChannel,
+                                },
+                            ],
+                        }));
+                    }
+                });
+            }
         });
-        this.chatClient.on("messageAdded", () => {
-            this.setState({ channels: [] });
-            this.state.channelState.map(async (channel) => {
-                const messages = await channel.channel.getMessages();
-                const index = messages.items.length;
-
-                this.setState((prevState) => ({
-                    channels: [
-                        ...prevState.channels,
-                        {
-                            channel: channel.channel,
-                            messages:
-                                messages.items[index - 1] !== undefined
-                                    ? messages.items[index - 1]
-                                    : undefined,
-                        },
-                    ],
-                }));
-            });
-        });
+        // Each time someone send a message on a subscribed channel, i update
+        // channels to get the lasts messages
+        this.chatClient.on("messageAdded", this.updateChannels);
         if (this.props.candidate !== undefined) {
             const channelName = [
                 this.props.user.username,
@@ -358,6 +409,18 @@ export class ChatApp extends React.Component<
             }
             const messagePage = await this.channel.getMessages();
             this.setState({ messages: messagePage.items });
+            if (
+                messagePage.items[messagePage.items.length - 1] !== undefined &&
+                messagePage.items[messagePage.items.length - 1].index >
+                    messagePage.items[messagePage.items.length - 1].channel
+                        .lastConsumedMessageIndex
+            ) {
+                messagePage.items[
+                    messagePage.items.length - 1
+                ].channel.updateLastConsumedMessageIndex(
+                    messagePage.items[messagePage.items.length - 1].index % 30,
+                );
+            }
             await this.channel.on("messageAdded", this.messageAdded);
 
             const members = await this.channel.getMembers(); // penser a utiliser un event

@@ -4,4 +4,5 @@ export const candidates = [
     { id: "102", username: "christian" },
     { id: "103", username: "claire" },
     { id: "104", username: "carl" },
+    { id: "105", username: "charly" },
 ];
