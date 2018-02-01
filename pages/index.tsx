@@ -7,14 +7,14 @@ import { admins } from "../lib/admins";
 import { candidates } from "../lib/candidates";
 import { employers } from "../lib/employers";
 import { IContext } from "../next";
-import Error from "./_error";
+import ErrorPage from "./_error";
 
 interface IProps {
     candidate: { id: string; username: string } | undefined;
     role: string;
     token: string;
     user: { id: string; username: string };
-    user_id: number;
+    user_id: string;
 }
 
 const IndexPage: React.SFC<IProps> = ({
@@ -26,7 +26,7 @@ const IndexPage: React.SFC<IProps> = ({
 }) => {
     if (token === undefined) {
         // throw new Error("Can't get token");
-        return <Error statusCode={404} />;
+        return <ErrorPage statusCode={404} />;
     }
     if (role === "candidate" && candidate !== undefined) {
         candidate = undefined;
@@ -50,6 +50,9 @@ const IndexPage: React.SFC<IProps> = ({
     query: { candidate_id, role, user_id },
 }: IContext): Promise<IProps> => {
     let user;
+    if (typeof user_id !== "string") {
+        throw new Error("Wrong user id");
+    }
     switch (role) {
         case "admin":
             user = admins.find((admin) => admin.id === user_id);
@@ -61,10 +64,9 @@ const IndexPage: React.SFC<IProps> = ({
             user = candidates.find((candidat) => candidat.id === user_id);
             break;
         default:
-            return <Error statusCode={404} />;
-        // throw new Error("The role: " + role + " doesn't exist");
+            throw new Error("The role: " + role + " doesn't exist");
     }
-    if (user) {
+    if (user !== undefined) {
         const candidate = candidates.find(
             (candidat) => candidat.id === candidate_id,
         );
@@ -77,8 +79,7 @@ const IndexPage: React.SFC<IProps> = ({
 
         return { candidate, role, token, user, user_id };
     } else {
-        return <Error statusCode={404} />;
-        // throw new Error("Wrong user id");
+        throw new Error("Wrong user id");
     }
 };
 

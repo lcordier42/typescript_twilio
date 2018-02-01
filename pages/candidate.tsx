@@ -7,7 +7,7 @@ import { IContext } from "../next";
 
 interface IProps {
     role: string;
-    user_id: number;
+    user_id: string;
 }
 
 const CandidatePage: React.SFC<IProps> = ({ role, user_id }) => {
@@ -25,6 +25,9 @@ const CandidatePage: React.SFC<IProps> = ({ role, user_id }) => {
 (CandidatePage as any).getInitialProps = async ({
     query: { role, user_id },
 }: IContext): Promise<IProps> => {
+    if (typeof role !== "string" || typeof user_id !== "string") {
+        throw new Error("Wrong query");
+    }
     return { role, user_id };
 };
 
