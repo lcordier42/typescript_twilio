@@ -13,7 +13,8 @@ export class ChatApp extends React.Component<
         user: { id: string; username: string };
     },
     {
-        channels: string[];
+        channelState: any[];
+        channels: any[];
         inviteUser: string;
         joinChannel: string;
         messages: string[];
@@ -29,6 +30,7 @@ export class ChatApp extends React.Component<
         // @ts-ignore
         super(...arguments);
         this.state = {
+            channelState: [],
             channels: [],
             inviteUser: "",
             joinChannel: "",
@@ -48,8 +50,8 @@ export class ChatApp extends React.Component<
         }
     }
 
-    public messageAdded = (message: string) => {
-        this.setState((prevState, props) => ({
+    public messageAdded = async (message: string) => {
+        this.setState((prevState) => ({
             messages: [...prevState.messages, message],
         }));
     }
@@ -122,44 +124,56 @@ export class ChatApp extends React.Component<
                                         members.map(async (member: any) => {
                                             const user = await member.getUser();
                                             if (user.online === true) {
-                                                this.setState(
-                                                    (prevState, props) => ({
-                                                        onlineMembers: [
-                                                            ...prevState.onlineMembers,
-                                                            member.identity,
-                                                        ],
-                                                    }),
-                                                );
+                                                this.setState((prevState) => ({
+                                                    onlineMembers: [
+                                                        ...prevState.onlineMembers,
+                                                        member.identity,
+                                                    ],
+                                                }));
                                             } else {
-                                                this.setState(
-                                                    (prevState, props) => ({
-                                                        offlineMembers: [
-                                                            ...prevState.offlineMembers,
-                                                            member.identity,
-                                                        ],
-                                                    }),
-                                                );
+                                                this.setState((prevState) => ({
+                                                    offlineMembers: [
+                                                        ...prevState.offlineMembers,
+                                                        member.identity,
+                                                    ],
+                                                }));
                                             }
                                         });
                                     }}
                                 >
-                                    {this.state.channels.map((channel, i) => (
-                                        <li key={i}>
-                                            <button
-                                                type="submit"
-                                                name={channel}
-                                                onClick={(event: any) => {
-                                                    this.setState({
-                                                        joinChannel:
-                                                            event.target.value,
-                                                    });
-                                                }}
-                                                value={channel}
-                                            >
-                                                {channel}
-                                            </button>
-                                        </li>
-                                    ))}
+                                    {this.state.channels
+                                        .sort(
+                                            (a, b) =>
+                                                b.channel.dateCreated -
+                                                a.channel.dateCreated,
+                                        )
+                                        .map((channel) => (
+                                            <li key={channel.channel.sid}>
+                                                <button
+                                                    type="submit"
+                                                    name={
+                                                        channel.channel
+                                                            .uniqueName
+                                                    }
+                                                    onClick={(event: any) => {
+                                                        this.setState({
+                                                            joinChannel:
+                                                                event.target
+                                                                    .name,
+                                                        });
+                                                    }}
+                                                >
+                                                    {channel.channel.uniqueName}
+                                                </button>
+                                                <p>
+                                                    last message:
+                                                    {channel.messages !==
+                                                    undefined
+                                                        ? channel.messages.body
+                                                        : "empty conversation"}
+                                                </p>
+                                            </li>
+                                        ))}
                                 </form>
                             </div>
                             {this.channel ? (
@@ -273,18 +287,51 @@ export class ChatApp extends React.Component<
 
     public async componentDidMount() {
         this.chatClient = await Chat.create(this.props.token);
-        this.chatClient.on("channelAdded", (channel: any) => {
-            this.setState((prevState, props) => ({
-                channels: [...prevState.channels, channel.uniqueName],
+
+        this.chatClient.on("channelAdded", async (channel) => {
+            const messages = await channel.getMessages();
+            const index = messages.items.length;
+
+            this.setState((prevState) => ({
+                channels: [
+                    ...prevState.channels,
+                    {
+                        channel,
+                        messages:
+                            messages.items[index - 1] !== undefined
+                                ? messages.items[index - 1]
+                                : undefined,
+                    },
+                ],
             }));
+            // used as a backup of channels
+            this.setState({ channelState: this.state.channels });
+        });
+        this.chatClient.on("messageAdded", () => {
+            this.setState({ channels: [] });
+            this.state.channelState.map(async (channel) => {
+                const messages = await channel.channel.getMessages();
+                const index = messages.items.length;
+
+                this.setState((prevState) => ({
+                    channels: [
+                        ...prevState.channels,
+                        {
+                            channel: channel.channel,
+                            messages:
+                                messages.items[index - 1] !== undefined
+                                    ? messages.items[index - 1]
+                                    : undefined,
+                        },
+                    ],
+                }));
+            });
         });
         if (this.props.candidate !== undefined) {
             const channelName = [
                 this.props.user.username,
                 this.props.candidate.username,
             ].toString();
-            // Si un candidate a été invité
-            const previousChannel = this.channel || undefined;
             // false === channel non existant, true === channel déjà crée
             let created = false;
             const paginator = await this.chatClient.getSubscribedChannels(
@@ -319,14 +366,14 @@ export class ChatApp extends React.Component<
             for (const member of members) {
                 const user = await member.getUser();
                 if (user.online === true) {
-                    this.setState((prevState, props) => ({
+                    this.setState((prevState) => ({
                         onlineMembers: [
                             ...prevState.onlineMembers,
                             member.identity,
                         ],
                     }));
                 } else {
-                    this.setState((prevState, props) => ({
+                    this.setState((prevState) => ({
                         offlineMembers: [
                             ...prevState.offlineMembers,
                             member.identity,
