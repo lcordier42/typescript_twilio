@@ -50,7 +50,9 @@ const IndexPage: React.SFC<IProps> = ({
     query: { candidate_id, role, user_id },
 }: IContext): Promise<IProps> => {
     let user;
-    user_id = user_id as string;
+    if (typeof user_id !== "string") {
+        throw new Error("Wrong user id");
+    }
     switch (role) {
         case "admin":
             user = admins.find((admin) => admin.id === user_id);

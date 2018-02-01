@@ -4,8 +4,8 @@ import { Nav } from "../components/Nav";
 import { IContext } from "../next";
 
 interface IProps {
-    role: string | undefined;
-    user_id: string | undefined;
+    role: string;
+    user_id: string;
 }
 
 const AboutPage: React.SFC<IProps> = ({ role, user_id }) => (
@@ -19,8 +19,9 @@ const AboutPage: React.SFC<IProps> = ({ role, user_id }) => (
 (AboutPage as any).getInitialProps = async ({
     query: { role, user_id },
 }: IContext): Promise<IProps> => {
-    role = role as string | undefined;
-    user_id = user_id as string | undefined;
+    if (typeof role !== "string" || typeof user_id !== "string") {
+        throw new Error("Wrong query");
+    }
     return { role, user_id };
 };
 
