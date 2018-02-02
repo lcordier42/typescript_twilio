@@ -8,18 +8,20 @@ export class Channels extends React.Component<{
     public render() {
         return (
             <div className="channels">
-                <label>Join a channel: </label>
-                {this.props.channels.map((channel) => (
-                    <li key={channel.sid}>
-                        <button
-                            type="submit"
-                            name={channel.uniqueName}
-                            onClick={this.props.joinChannel}
-                        >
-                            {channel.uniqueName}
-                        </button>
-                    </li>
-                ))}
+                <b>Join a channel: </b>
+                {this.props.channels
+                    .sort((a, b) => b.dateCreated - a.dateCreated)
+                    .map((channel) => (
+                        <li key={channel.sid}>
+                            <button
+                                type="submit"
+                                name={channel.uniqueName}
+                                onClick={this.props.joinChannel}
+                            >
+                                {channel.uniqueName}
+                            </button>
+                        </li>
+                    ))}
             </div>
         );
     }

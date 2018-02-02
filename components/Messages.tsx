@@ -23,6 +23,7 @@ export class Messages extends React.Component<
         const messagePage = await this.props.channel.getMessages();
         this.setState({ messages: messagePage.items });
         await this.props.channel.on("messageAdded", this.messageAdded);
+        document.cookie = this.props.channel.uniqueName;
     }
 
     public componentWillUnmount() {
@@ -39,6 +40,7 @@ export class Messages extends React.Component<
             const messagePage = await nextProps.channel.getMessages();
             this.setState({ messages: messagePage.items });
             await nextProps.channel.on("messageAdded", this.messageAdded);
+            document.cookie = this.props.channel.uniqueName;
         }
     }
 
@@ -87,7 +89,9 @@ export class Messages extends React.Component<
                         }}
                         value={this.state.newMessage}
                     />
-                    <button type="submit" name="send">Send</button>
+                    <button type="submit" name="send">
+                        Send
+                    </button>
                 </form>
             </div>
         );
