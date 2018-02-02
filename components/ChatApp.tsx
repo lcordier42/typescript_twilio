@@ -2,6 +2,7 @@ import * as React from "react";
 import Chat from "twilio-chat";
 
 import { admins } from "../lib/admins";
+import { Channels } from "./Channels";
 import { Messages } from "./Messages";
 
 export class ChatApp extends React.Component<
@@ -69,31 +70,19 @@ export class ChatApp extends React.Component<
                         </div>
                     ) : (
                         <div>
-                            <div className="channels">
-                                <label>Join a channel: </label>
-                                {this.state.channels.map((channel) => (
-                                    <li key={channel.sid}>
-                                        <button
-                                            type="submit"
-                                            name={channel.uniqueName}
-                                            onClick={async (event: any) => {
-                                                if (
-                                                    this.chatClient !==
-                                                    undefined
-                                                ) {
-                                                    this.setState({
-                                                        joinChannel: await this.chatClient.getChannelByUniqueName(
-                                                            event.target.name,
-                                                        ),
-                                                    });
-                                                }
-                                            }}
-                                        >
-                                            {channel.uniqueName}
-                                        </button>
-                                    </li>
-                                ))}
-                            </div>
+                            <Channels
+                                channels={this.state.channels}
+                                joinChannel={async (event: any) => {
+                                    event.preventDefault();
+                                    if (this.chatClient !== undefined) {
+                                        this.setState({
+                                            joinChannel: await this.chatClient.getChannelByUniqueName(
+                                                event.target.name,
+                                            ),
+                                        });
+                                    }
+                                }}
+                            />
                             {this.state.joinChannel !== undefined ? (
                                 <div>
                                     {/* New component messages */}
