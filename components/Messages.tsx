@@ -31,7 +31,7 @@ export class Messages extends React.Component<
 
     public async componentWillReceiveProps(nextProps: any) {
         // If we change channel nextProps !== this.props so we have to load messages for the new channel
-        if (nextProps !== this.props) {
+        if (nextProps.channel.uniqueName !== this.props.channel.uniqueName) {
             this.props.channel.removeListener(
                 "messageAdded",
                 this.messageAdded,
