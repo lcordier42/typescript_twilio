@@ -1,5 +1,4 @@
 import * as React from "react";
-import Chat from "twilio-chat";
 
 export class Messages extends React.Component<
     {

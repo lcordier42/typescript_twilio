@@ -75,7 +75,7 @@ export class ChatApp extends React.Component<
                                     <li key={channel.sid}>
                                         <button
                                             type="submit"
-                                            name={channel}
+                                            name={channel.uniqueName}
                                             onClick={async (event: any) => {
                                                 if (
                                                     this.chatClient !==
@@ -89,7 +89,7 @@ export class ChatApp extends React.Component<
                                                 }
                                             }}
                                         >
-                                            {channel}
+                                            {channel.uniqueName}
                                         </button>
                                     </li>
                                 ))}
@@ -118,7 +118,7 @@ export class ChatApp extends React.Component<
         this.chatClient = await Chat.create(this.props.token);
         this.chatClient.on("channelAdded", (channel: any) => {
             this.setState((prevState) => ({
-                channels: [...prevState.channels, channel.uniqueName],
+                channels: [...prevState.channels, channel],
             }));
         });
         if (this.props.candidate !== undefined) {
