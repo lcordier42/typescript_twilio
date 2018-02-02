@@ -23,6 +23,7 @@ export class Messages extends React.Component<
         const messagePage = await this.props.channel.getMessages();
         this.setState({ messages: messagePage.items });
         await this.props.channel.on("messageAdded", this.messageAdded);
+        // Added to save the current channel and stay on after refresh page
         document.cookie = this.props.channel.uniqueName;
     }
 
@@ -40,6 +41,7 @@ export class Messages extends React.Component<
             const messagePage = await nextProps.channel.getMessages();
             this.setState({ messages: messagePage.items });
             await nextProps.channel.on("messageAdded", this.messageAdded);
+            // Added to save the current channel and stay on after refresh page
             document.cookie = this.props.channel.uniqueName;
         }
     }

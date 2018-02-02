@@ -157,6 +157,7 @@ export class ChatApp extends React.Component<
         });
         this.chatClient.on("messageAdded", this.getLastMessages);
 
+        // get the saved channel if we were on a channel before
         const savedChannel = document.cookie;
         if (this.props.candidate !== undefined) {
             const channelName = [
