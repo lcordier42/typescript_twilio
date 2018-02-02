@@ -24,7 +24,7 @@ export class Messages extends React.Component<
         this.setState({ messages: messagePage.items });
         await this.props.channel.on("messageAdded", this.onMessageAdded);
         // Added to save the current channel and stay on after refresh page
-        document.cookie = this.props.channel.uniqueName;
+        localStorage.setItem("channelLogged", this.props.channel.uniqueName);
     }
 
     public componentWillUnmount() {
@@ -36,13 +36,16 @@ export class Messages extends React.Component<
         if (nextProps.channel.uniqueName !== this.props.channel.uniqueName) {
             this.props.channel.removeListener(
                 "messageAdded",
-                this.messageAdded,
+                this.onMessageAdded,
             );
             const messagePage = await nextProps.channel.getMessages();
             this.setState({ messages: messagePage.items });
             await nextProps.channel.on("messageAdded", this.onMessageAdded);
             // Added to save the current channel and stay on after refresh page
-            document.cookie = this.props.channel.uniqueName;
+            localStorage.setItem(
+                "channelLogged",
+                this.props.channel.uniqueName,
+            );
         }
     }
 

@@ -36,7 +36,7 @@ export class ChatApp extends React.Component<
         if (this.chatClient !== undefined) {
             this.chatClient.shutdown();
         }
-        document.cookie = "";
+        localStorage.removeItem("channelLogged");
     }
 
     public getLastMessages = async () => {
@@ -158,7 +158,7 @@ export class ChatApp extends React.Component<
         this.chatClient.on("messageAdded", this.getLastMessages);
 
         // get the saved channel if we were on a channel before
-        const savedChannel = document.cookie;
+        const savedChannel = localStorage.getItem("channelLogged");
         if (this.props.candidate !== undefined) {
             const channelName = [
                 this.props.user.username,
