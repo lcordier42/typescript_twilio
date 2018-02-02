@@ -33,7 +33,7 @@ async function initCandidatePage(page: puppeteer.Page) {
         `http://localhost:${process.env.PORT}?user_id=101&role=candidate`,
     );
     // wait for available channels to be displayed
-    await page.waitFor(".channels form li");
+    await page.waitFor(".channels li");
 }
 
 async function initCoachPage(page: puppeteer.Page) {
@@ -41,7 +41,7 @@ async function initCoachPage(page: puppeteer.Page) {
         `http://localhost:${process.env.PORT}?user_id=1&role=admin`,
     );
     // wait for available channels to be displayed
-    await page.waitFor(".channels form li");
+    await page.waitFor(".channels li");
 }
 
 async function initEmployerPage(page: puppeteer.Page) {
@@ -49,7 +49,7 @@ async function initEmployerPage(page: puppeteer.Page) {
         `http://localhost:${process.env.PORT}?user_id=11&role=employer`,
     );
     // wait for available channels to be displayed
-    await page.waitFor(".channels form li");
+    await page.waitFor(".channels li");
 }
 
 beforeAll(async () => {
@@ -167,13 +167,13 @@ test("An employer can invite a candidate on chat", async () => {
     );
     // invite a candidate
     await employerPage.click('button[name="claire"]');
-    await employerPage.waitFor(".channels form li");
+    await employerPage.waitFor(".channels li");
     // connecting candidate to chat page
     await candidatePage.goto(
         `http://localhost:${process.env.PORT}?user_id=103&role=candidate`,
     );
     // wait for available channels to be displayed
-    await candidatePage.waitFor(".channels form li");
+    await candidatePage.waitFor(".channels li");
 
     // sending a message
     const message = casual.sentence;
