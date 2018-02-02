@@ -22,13 +22,13 @@ export class Messages extends React.Component<
     public async componentWillMount() {
         const messagePage = await this.props.channel.getMessages();
         this.setState({ messages: messagePage.items });
-        await this.props.channel.on("messageAdded", this.messageAdded);
+        await this.props.channel.on("messageAdded", this.onMessageAdded);
         // Added to save the current channel and stay on after refresh page
         document.cookie = this.props.channel.uniqueName;
     }
 
     public componentWillUnmount() {
-        this.props.channel.removeListener("messageAdded", this.messageAdded);
+        this.props.channel.removeListener("messageAdded", this.onMessageAdded);
     }
 
     public async componentWillReceiveProps(nextProps: any) {
@@ -40,13 +40,13 @@ export class Messages extends React.Component<
             );
             const messagePage = await nextProps.channel.getMessages();
             this.setState({ messages: messagePage.items });
-            await nextProps.channel.on("messageAdded", this.messageAdded);
+            await nextProps.channel.on("messageAdded", this.onMessageAdded);
             // Added to save the current channel and stay on after refresh page
             document.cookie = this.props.channel.uniqueName;
         }
     }
 
-    public messageAdded = (message: string) => {
+    public onMessageAdded = (message: string) => {
         this.setState((prevState) => ({
             messages: [...prevState.messages, message],
         }));
