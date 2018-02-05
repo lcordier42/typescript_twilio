@@ -2,8 +2,9 @@ import * as React from "react";
 import Chat from "twilio-chat";
 
 import { admins } from "../lib/admins";
-
-const ERROR_CODE__CHANNEL_ALREADY_EXISTS = 50307; // https://www.twilio.com/docs/api/errors/50307
+import { Channels } from "./Channels";
+import { LastMessages } from "./LastMessages";
+import { Messages } from "./Messages";
 
 export class ChatApp extends React.Component<
     {
@@ -13,13 +14,9 @@ export class ChatApp extends React.Component<
         user: { id: string; username: string };
     },
     {
-        channels: string[];
-        inviteUser: string;
-        joinChannel: string;
-        messages: string[];
-        newMessage: string;
-        offlineMembers: string[];
-        onlineMembers: string[];
+        channels: any[];
+        joinChannel: any | undefined;
+        lastMessages: any[];
     }
 > {
     private channel: any;
@@ -30,28 +27,33 @@ export class ChatApp extends React.Component<
         super(...arguments);
         this.state = {
             channels: [],
-            inviteUser: "",
-            joinChannel: "",
-            messages: [],
-            newMessage: "",
-            offlineMembers: [],
-            onlineMembers: [],
+            joinChannel: undefined,
+            lastMessages: [],
         };
     }
 
     public componentWillUnmount() {
         if (this.chatClient !== undefined) {
-            if (this.channel !== undefined) {
-                this.channel.removeListener("messageAdded", this.messageAdded);
-            }
             this.chatClient.shutdown();
         }
+        localStorage.removeItem("channelLogged");
     }
 
-    public messageAdded = (message: string) => {
-        this.setState((prevState) => ({
-            messages: [...prevState.messages, message],
-        }));
+    public getLastMessages = async () => {
+        if (this.chatClient !== undefined) {
+            const channels = await this.chatClient.getSubscribedChannels(
+                undefined,
+            );
+            const lastMessages = new Array();
+            const channelsSorted = channels.items.sort(
+                (a, b) => b.dateCreated - a.dateCreated,
+            );
+            for (const channel of channelsSorted) {
+                const messages = await channel.getMessages();
+                lastMessages.push(messages.items.slice(-1)[0]);
+            }
+            this.setState({ lastMessages });
+        }
     };
 
     public render() {
@@ -62,10 +64,28 @@ export class ChatApp extends React.Component<
                     <h3>Username: {this.props.user.username}</h3>
                 </header>
                 <style>{`
-                    .admin {
-                        position: relative;
-                        top: 130px;
-                        width: 400px;
+                    .channels {
+                        float: left;
+                        list-style-type: none;
+                        width: 180px;
+                    }
+
+                    .channels li {
+                        margin-bottom: 0.25em;
+                    }
+
+                    .channels_blocks {
+                        width: 600px;
+                        margin-bottom: 50px;
+                    }
+
+                    .last_messages {
+                        list-style-type: none;
+                        width: 700px;
+                    }
+
+                    .last_messages li {
+                        margin-bottom: 0.44em;
                     }
 
                     .messages {
@@ -73,14 +93,14 @@ export class ChatApp extends React.Component<
                         height: 350px;
                         overflow-y: scroll;
                         padding: 0;
-                        margin: 0;
                     }
 
                     .messages li {
+                        background-color: #e8e8e8;
                         margin-bottom: 0.5em;
                         padding: 1em 0.5em;
-                        background-color: #e8e8e8;
                     }
+
                 `}</style>
                 <div>
                     {this.chatClient === undefined ? (
@@ -89,139 +109,31 @@ export class ChatApp extends React.Component<
                         </div>
                     ) : (
                         <div>
-                            <div className="channels">
-                                <label>Join a channel: </label>
-                                <form
-                                    onSubmit={async (event) => {
+                            <div className="channels_blocks">
+                                <Channels
+                                    channels={this.state.channels}
+                                    joinChannel={async (event: any) => {
                                         event.preventDefault();
-                                        if (this.channel) {
-                                            this.channel.removeListener(
-                                                "messageAdded",
-                                                this.messageAdded,
-                                            );
+                                        if (this.chatClient !== undefined) {
+                                            this.setState({
+                                                joinChannel: await this.chatClient.getChannelByUniqueName(
+                                                    event.target.name,
+                                                ),
+                                            });
                                         }
-                                        if (this.chatClient) {
-                                            const channel = await this.chatClient.getChannelByUniqueName(
-                                                this.state.joinChannel,
-                                            );
-                                            this.channel = channel;
-                                        }
-
-                                        const messagePage = await this.channel.getMessages();
-                                        this.setState({
-                                            messages: messagePage.items,
-                                        });
-                                        this.channel.on(
-                                            "messageAdded",
-                                            this.messageAdded,
-                                        );
-
-                                        const members = await this.channel.getMembers();
-                                        this.setState({ onlineMembers: [] });
-                                        this.setState({ offlineMembers: [] });
-                                        members.map(async (member: any) => {
-                                            const user = await member.getUser();
-                                            if (user.online === true) {
-                                                this.setState((prevState) => ({
-                                                    onlineMembers: [
-                                                        ...prevState.onlineMembers,
-                                                        member.identity,
-                                                    ],
-                                                }));
-                                            } else {
-                                                this.setState((prevState) => ({
-                                                    offlineMembers: [
-                                                        ...prevState.offlineMembers,
-                                                        member.identity,
-                                                    ],
-                                                }));
-                                            }
-                                        });
                                     }}
-                                >
-                                    {this.state.channels.map((channel, i) => (
-                                        <li key={i}>
-                                            <button
-                                                type="submit"
-                                                name={channel}
-                                                onClick={(event: any) => {
-                                                    this.setState({
-                                                        joinChannel:
-                                                            event.target.value,
-                                                    });
-                                                }}
-                                                value={channel}
-                                            >
-                                                {channel}
-                                            </button>
-                                        </li>
-                                    ))}
-                                </form>
+                                />
+                                <LastMessages
+                                    lastMessages={this.state.lastMessages}
+                                />
                             </div>
-                            {this.channel ? (
-                                <div className="chat">
-                                    <h3>Messages</h3>
-                                    <p>
-                                        Logged in as {this.props.user.username}
-                                    </p>
-                                    <ul className="messages">
-                                        {this.state.messages.map(
-                                            (message: any) => (
-                                                <li
-                                                    key={message.sid}
-                                                    ref={(li) => {
-                                                        if (li) {
-                                                            li.scrollIntoView();
-                                                        }
-                                                    }}
-                                                >
-                                                    <b>{message.author}:</b>{" "}
-                                                    {message.body}
-                                                </li>
-                                            ),
-                                        )}
-                                    </ul>
-                                    <form
-                                        onSubmit={(event) => {
-                                            event.preventDefault();
-                                            const message = this.state
-                                                .newMessage;
-                                            this.setState({ newMessage: "" });
-                                            this.channel.sendMessage(message);
-                                        }}
-                                    >
-                                        <label htmlFor="message">
-                                            Message:{" "}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="message"
-                                            id="message"
-                                            onChange={(event) => {
-                                                this.setState({
-                                                    newMessage:
-                                                        event.target.value,
-                                                });
-                                            }}
-                                            value={this.state.newMessage}
-                                        />
-                                        <button name="send">Send</button>
-                                    </form>
-                                    <br />
-                                    <div>
-                                        <b>Online</b>
-                                        {this.state.onlineMembers.map(
-                                            (member, i) => (
-                                                <li key={i}>{member}</li>
-                                            ),
-                                        )}
-                                        <b>Offline</b>
-                                        {this.state.offlineMembers.map(
-                                            (member, i) => (
-                                                <li key={i}>{member}</li>
-                                            ),
-                                        )}
-                                    </div>
+                            {this.state.joinChannel !== undefined ? (
+                                <div>
+                                    {/* New component messages */}
+                                    <Messages
+                                        channel={this.state.joinChannel}
+                                        user={this.props.user}
+                                    />
                                 </div>
                             ) : (
                                 <h1 className="noChannelJoined">
@@ -231,56 +143,28 @@ export class ChatApp extends React.Component<
                         </div>
                     )}
                 </div>
-                <div>
-                    {this.chatClient === undefined ||
-                    (this.props.role !== "admin" &&
-                        this.props.role !== "employer") ? null : (
-                        <div className="admin">
-                            <form
-                                onSubmit={async (event) => {
-                                    event.preventDefault();
-                                    if (this.channel) {
-                                        await this.channel.add(
-                                            this.state.inviteUser,
-                                        );
-                                    }
-                                    this.setState({ inviteUser: "" });
-                                }}
-                            >
-                                <input
-                                    type="text"
-                                    name="inviteuser"
-                                    id="inviteuser"
-                                    onChange={(event) => {
-                                        this.setState({
-                                            inviteUser: event.target.value,
-                                        });
-                                    }}
-                                    value={this.state.inviteUser}
-                                />
-                                <button>Add user</button>
-                            </form>
-                        </div>
-                    )}
-                </div>
             </main>
         );
     }
 
     public async componentDidMount() {
         this.chatClient = await Chat.create(this.props.token);
+        this.getLastMessages();
         this.chatClient.on("channelAdded", (channel: any) => {
             this.setState((prevState) => ({
-                channels: [...prevState.channels, channel.uniqueName],
+                channels: [...prevState.channels, channel],
             }));
         });
+        this.chatClient.on("messageAdded", this.getLastMessages);
+
+        // get the saved channel if we were on a channel before
+        const savedChannel = localStorage.getItem("channelLogged") || "";
         if (this.props.candidate !== undefined) {
             const channelName = [
                 this.props.user.username,
                 this.props.candidate.username,
             ].toString();
             // Si un candidate a été invité
-            const previousChannel = this.channel || undefined;
             // false === channel non existant, true === channel déjà crée
             let created = false;
             const paginator = await this.chatClient.getSubscribedChannels(
@@ -305,31 +189,12 @@ export class ChatApp extends React.Component<
                     channelName,
                 );
             }
-            const messagePage = await this.channel.getMessages();
-            this.setState({ messages: messagePage.items });
-            await this.channel.on("messageAdded", this.messageAdded);
-
-            const members = await this.channel.getMembers(); // penser a utiliser un event
-            this.setState({ onlineMembers: [] });
-            this.setState({ offlineMembers: [] });
-            for (const member of members) {
-                const user = await member.getUser();
-                if (user.online === true) {
-                    this.setState((prevState) => ({
-                        onlineMembers: [
-                            ...prevState.onlineMembers,
-                            member.identity,
-                        ],
-                    }));
-                } else {
-                    this.setState((prevState) => ({
-                        offlineMembers: [
-                            ...prevState.offlineMembers,
-                            member.identity,
-                        ],
-                    }));
-                }
-            }
+            this.setState({ joinChannel: this.channel });
+        } else if (savedChannel !== "") {
+            this.channel = await this.chatClient.getChannelByUniqueName(
+                savedChannel,
+            );
+            this.setState({ joinChannel: this.channel });
         }
     }
 }
